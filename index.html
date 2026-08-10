@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Informasi KAS RT - Cluster Digital</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Financial Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985'
+                        },
+                        emerald: {
+                            500: '#10b981',
+                            600: '#059669'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        .tab-active {
+            border-bottom: 3px solid #0284c7;
+            color: #0284c7;
+            font-weight: 600;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- TOP HEADER / NAVBAR -->
+    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand / Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="checkAuthAndRedirect()">
+                    <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
+                        <i class="fa-solid fa-vault"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight">SI-KAS RT 05</h1>
+                        <p class="text-xs text-sky-300">Cluster Asri Permata - Portal Keuangan Digital</p>
+                    </div>
+                </div>
+
+                <!-- User Session & Logout / Switch Role -->
+                <div class="flex items-center space-x-3">
+                    <div id="userInfoHeader" class="hidden flex items-center space-x-3 bg-slate-800 p-1.5 px-3 rounded-xl border border-slate-700">
+                        <div class="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center font-bold text-white text-xs" id="userAvatar">
+                            A
+                        </div>
+                        <div class="text-left hidden sm:block">
+                            <div class="text-xs font-bold text-white leading-none" id="userNameHeader">Ahmad Subagja</div>
+                            <div class="text-[10px] text-sky-400 font-medium" id="userRoleHeader">Admin RT</div>
+                        </div>
+                        <button onclick="logout()" title="Keluar / Logout" class="ml-2 text-rose-400 hover:text-rose-300 hover:bg-slate-700 p-1.5 rounded-lg transition-all text-xs flex items-center gap-1">
+                            <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden md:inline">Keluar</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick Switcher for Demo Purposes -->
+                    <div id="roleSelectorContainer" class="hidden flex items-center space-x-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
+                        <select id="roleSelector" onchange="switchRole(this.value)" class="bg-slate-900 text-sky-400 text-xs font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:outline-none cursor-pointer">
+                            <option value="warga">👤 Portal Warga</option>
+                            <option value="admin">🛠️ Admin RT</option>
+                            <option value="bendahara_gang">📑 Bendahara Gang</option>
+                            <option value="bendahara_umum">💰 Bendahara Umum</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SUB HEADER / ACTIVE ROLE INFORMER & DEPLOYMENT GUIDE LINK -->
+    <div class="bg-sky-50 border-b border-sky-100 py-2 px-4 sm:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-sky-800 gap-2">
+            <div class="flex items-center space-x-2">
+                <span id="roleBadge" class="bg-sky-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase">Portal Login</span>
+                <span id="roleDescription">Silakan login dengan akun username dan password Anda.</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="openDeploymentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1.5 transition-all text-[11px]">
+                    <i class="fa-solid fa-rocket"></i> Panduan Deployment & Hosting
+                </button>
+                <span class="text-slate-300">|</span>
+                <button onclick="openAppsScriptModal()" class="text-sky-700 hover:text-sky-900 font-medium underline flex items-center gap-1">
+                    <i class="fa-solid fa-file-code"></i> Setup Google Sheets Script
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+        <!-- NOTIFICATION CONTAINER -->
+        <div id="toastContainer" class="fixed top-20 right-5 z-50 flex flex-col gap-2"></div>
+
+        <!-- -->
+        <!-- ==================================================================== -->
+        <!-- VIEW 0: LOGIN SYSTEM SECTION -->
+        <!-- ==================================================================== -->
+        <section id="view-login" class="max-w-md mx-auto py-8">
+            <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-200 space-y-6">
+                <div class="text-center space-y-2">
+                    <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
+                        <i class="fa-solid fa-user-lock"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800">Login Sistem KAS RT</h2>
+                    <p class="text-xs text-slate-500">Masukkan Username dan Password terdaftar untuk mengakses portal keuangan.</p>
+                </div>
+
+                <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Username</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="loginUsername" placeholder="Contoh: admin / bgang1 / warga" required class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none text-xs font-semibold text-slate-800">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-key absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                            <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none text-xs text-slate-800">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-sky-200 transition-all text-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Sistem
+                    </button>
+                </form>
+
+                <!-- DEMO ACCOUNTS QUICK LOGIN CHIPS -->
+                <div class="pt-4 border-t border-slate-100 space-y-2">
+                    <p class="text-[11px] font-bold text-slate-500 text-center uppercase tracking-wider">⚡ Klik Cepat Demo Akun Testing:</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button onclick="quickLogin('admin', '123456')" class="p-2 bg-purple-50 hover:bg-purple-100 text-purple-800 rounded-xl border border-purple-200 text-left transition-all">
+                            <div class="font-bold">🛠️ Admin RT</div>
+                            <div class="text-[10px] text-purple-600 font-mono">User: admin | Pass: 123456</div>
+                        </button>
+                        <button onclick="quickLogin('bumum', '123456')" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200 text-left transition-all">
+                            <div class="font-bold">💰 Bendahara Umum</div>
+                            <div class="text-[10px] text-emerald-600 font-mono">User: bumum | Pass: 123456</div>
+                        </button>
+                        <button onclick="quickLogin('bgang1', '123456')" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl border border-amber-200 text-left transition-all">
+                            <div class="font-bold">📑 Bendahara Gang 1</div>
+                            <div class="text-[10px] text-amber-600 font-mono">User: bgang1 | Pass: 123456</div>
+                        </button>
+                        <button onclick="quickLogin('warga1', '123456')" class="p-2 bg-sky-50 hover:bg-sky-100 text-sky-800 rounded-xl border border-sky-200 text-left transition-all">
+                            <div class="font-bold">👤 Warga (Pak Ahmad)</div>
+                            <div class="text-[10px] text-sky-600 font-mono">User: warga1 | Pass: 123456</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================== -->
+        <!-- VIEW 1: PORTAL WARGA -->
+        <!-- ==================================================================== -->
+        <section id="view-admin" class="hidden space-y-6">
+    <!-- -->
+    <!-- MODAL 6: DEPLOYMENT GUIDE MODAL -->
+    <div id="modalDeployment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modalDeployment')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
+            
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Panduan Complete Deployment & Hosting Aplikasi Kas RT</h3>
+                    <p class="text-xs text-slate-500">Langkah publikasi aplikasi ke internet tanpa biaya server (100% Gratis).</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <!-- Option 1: GitHub Pages -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <div class="flex items-center gap-2 font-bold text-slate-800 text-sm">
+                        <i class="fa-brands fa-github text-lg"></i> Metode 1: GitHub Pages
+                    </div>
+                    <ol class="list-decimal pl-4 space-y-1 text-slate-600">
+                        <li>Buat Repository baru di <b class="text-slate-800">GitHub.com</b>.</li>
+                        <li>Upload file ini dan beri nama <code class="bg-slate-200 px-1 py-0.5 rounded text-sky-700">index.html</code>.</li>
+                        <li>Buka menu <b>Settings</b> &rarr; <b>Pages</b>.</li>
+                        <li>Pada bagian <i>Branch</i>, pilih <b>main</b> dan simpan (Save).</li>
+                        <li>Aplikasi langsung dapat diakses secara publik via URL github.io!</li>
+                    </ol>
+                </div>
+
+                <!-- Option 2: Netlify / Vercel -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <div class="flex items-center gap-2 font-bold text-slate-800 text-sm">
+                        <i class="fa-solid fa-bolt text-amber-500 text-lg"></i> Metode 2: Netlify / Vercel (Drag & Drop)
+                    </div>
+                    <ol class="list-decimal pl-4 space-y-1 text-slate-600">
+                        <li>Buka <b class="text-slate-800">app.netlify.com/drop</b> atau <b class="text-slate-800">vercel.com</b>.</li>
+                        <li>Tarik (Drag & Drop) folder berisi file <code class="bg-slate-200 px-1 py-0.5 rounded text-sky-700">index.html</code> ini.</li>
+                        <li>Tunggu proses publish dalam 5 detik.</li>
+                        <li>Domain gratis dengan HTTPS otomatis didapatkan (misal: <code class="text-sky-700">kas-rt-05.netlify.app</code>).</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Steps for Backend Integration -->
+            <div class="bg-sky-50 p-4 rounded-xl border border-sky-100 space-y-2 text-xs">
+                <h4 class="font-bold text-sky-900 flex items-center gap-2">
+                    <i class="fa-solid fa-link text-sky-600"></i> Menghubungkan Frontend Hosting dengan Google Sheets Backend
+                </h4>
+                <p class="text-sky-800 leading-relaxed">
+                    Setiap transaksi dan data warga yang diinput dari web terdeploy akan tersimpan secara terpusat di Google Spreadsheet RT Anda. Pasang Google Apps Script Web App (pilih <i>Anyone</i> saat Deploy) lalu masukkan URL Apps Script di aplikasi untuk sinkronisasi otomatis realtime.
+                </p>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex justify-end">
+                <button onclick="closeModal('modalDeployment')" class="px-5 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl shadow-md">Tutup Panduan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- -->
+    <script>
+        // CONFIG & CONSTANTS
+        const DUES_RATE_HUNI = 50000;
+        const DUES_RATE_TIDAK_HUNI = 25000;
+        const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+        // REGISTERED USER ACCOUNTS FOR SYSTEM LOGIN
+        const USERS_DB = {
+            "admin": { password: "123", name: "Admin Kelola RT", role: "admin", linkedId: "" },
+            "bumum": { password: "123", name: "Ibu Nurul (Bendahara Umum)", role: "bendahara_umum", linkedId: "" },
+            "bgang1": { password: "123", name: "Pak Ridwan (Bendahara Gang 1)", role: "bendahara_gang", linkedGang: "Gang 1" },
+            "bgang2": { password: "123", name: "Pak Sukirno (Bendahara Gang 2)", role: "bendahara_gang", linkedGang: "Gang 2" },
+            "bgang3": { password: "123", name: "Bu Martha (Bendahara Gang 3)", role: "bendahara_gang", linkedGang: "Gang 3" },
+            "warga1": { password: "123", name: "Ahmad Subagja", role: "warga", linkedId: "G1-01" },
+            "warga2": { password: "123", name: "Siti Rahmawati", role: "warga", linkedId: "G2-08" }
+        };
+
+        // APPLICATION INITIAL STATE
+        let state = {
+            currentUser: null,
+            isLoggedIn: false,
+            activeRole: 'login',
+            activeGang: 'Gang 1',
+            pendingDeleteId: null,
+            wargaList: [
+                { id: 'G1-01', gang: 'Gang 1', noRumah: '01', nama: 'Ahmad Subagja', hp: '081234567890', statusHuni: 'HUNI', rate: 50000 },
+                { id: 'G1-02', gang: 'Gang 1', noRumah: '02', nama: 'Budi Santoso', hp: '081298765432', statusHuni: 'HUNI', rate: 50000 },
+                { id: 'G1-03', gang: 'Gang 1', noRumah: '03', nama: 'Dedi Kurniawan', hp: '081311223344', statusHuni: 'HUNI', rate: 50000 },
+                { id: 'G2-01', gang: 'Gang 2', noRumah: '01', nama: 'Eko Prasetyo', hp: '081566778899', statusHuni: 'HUNI', rate: 50000 },
+                { id: 'G2-08', gang: 'Gang 2', noRumah: '08', nama: 'Siti Rahmawati', hp: '081900112233', statusHuni: 'TIDAK_HUNI', rate: 25000 },
+                { id: 'G3-01', gang: 'Gang 3', noRumah: '01', nama: 'Hendra Gunawan', hp: '081744556677', statusHuni: 'HUNI', rate: 50000 },
+                { id: 'G3-04', gang: 'Gang 3', noRumah: '04', nama: 'Bambang Tri', hp: '081822334455', statusHuni: 'HUNI', rate: 50000 },
+                { id: 'G3-09', gang: 'Gang 3', noRumah: '09', nama: 'Rina Kartika', hp: '081399887766', statusHuni: 'TIDAK_HUNI', rate: 25000 }
+            ],
+            iuranRecords: {
+                "G1-01_Januari_2026": { nominal: 50000, date: "2026-01-05", method: "TUNAI", collector: "Bendahara Gang 1" },
+                "G1-01_Februari_2026": { nominal: 50000, date: "2026-02-04", method: "TUNAI", collector: "Bendahara Gang 1" },
+                "G1-01_Maret_2026": { nominal: 50000, date: "2026-03-06", method: "TUNAI", collector: "Bendahara Gang 1" },
+                "G1-01_April_2026": { nominal: 50000, date: "2026-04-03", method: "TUNAI", collector: "Bendahara Gang 1" },
+                "G1-01_Mei_2026": { nominal: 50000, date: "2026-05-05", method: "TUNAI", collector: "Bendahara Gang 1" },
+                "G1-01_Juni_2026": { nominal: 50000, date: "2026-06-02", method: "TUNAI", collector: "Bendahara Gang 1" },
+                "G1-01_Juli_2026": { nominal: 50000, date: "2026-07-04", method: "TRANSFER", collector: "Bendahara Umum Direct" },
+                "G2-08_Januari_2026": { nominal: 25000, date: "2026-01-10", method: "TRANSFER", collector: "Bendahara Umum Direct" },
+                "G2-08_Februari_2026": { nominal: 25000, date: "2026-02-12", method: "TRANSFER", collector: "Bendahara Umum Direct" },
+                "G2-08_Maret_2026": { nominal: 25000, date: "2026-03-11", method: "TRANSFER", collector: "Bendahara Umum Direct" },
+                "G3-04_Januari_2026": { nominal: 50000, date: "2026-01-08", method: "TUNAI", collector: "Bendahara Gang 3" },
+                "G3-04_Februari_2026": { nominal: 50000, date: "2026-02-07", method: "TUNAI", collector: "Bendahara Gang 3" },
+                "G3-04_Maret_2026": { nominal: 50000, date: "2026-03-05", method: "TUNAI", collector: "Bendahara Gang 3" },
+                "G3-04_April_2026": { nominal: 50000, date: "2026-04-09", method: "TUNAI", collector: "Bendahara Gang 3" },
+                "G3-04_Mei_2026": { nominal: 50000, date: "2026-05-10", method: "TUNAI", collector: "Bendahara Gang 3" },
+                "G3-04_Juni_2026": { nominal: 50000, date: "2026-06-08", method: "TUNAI", collector: "Bendahara Gang 3" },
+                "G3-04_Juli_2026": { nominal: 50000, date: "2026-07-07", method: "TUNAI", collector: "Bendahara Gang 3" },
+                "G3-04_Agustus_2026": { nominal: 50000, date: "2026-08-02", method: "TUNAI", collector: "Bendahara Gang 3" }
+            },
+            ledger: [
+                { id: 1, date: "2026-08-01", type: "PEMASUKAN", category: "Setoran Bendahara Gang 1", note: "Rekap Penerimaan Iuran Gang 1 Bulan Juli 2026", amount: 350000, officer: "Bendahara Gang 1" },
+                { id: 2, date: "2026-08-02", type: "PENGELUARAN", category: "Honor Keamanan", note: "Honor 2 Petugas Satpam Malam Cluster", amount: 300000, officer: "Bendahara Umum" },
+                { id: 3, date: "2026-08-03", type: "PENGELUARAN", category: "Kebersihan & Sampah", note: "Iuran Kebersihan Pengangkut Sampah Komplek", amount: 150000, officer: "Bendahara Umum" },
+                { id: 4, date: "2026-08-04", type: "PEMASUKAN", category: "Setoran Direct Transfer", note: "Transfer Iuran Warga G1-01 (Pak Ahmad)", amount: 50000, officer: "Bendahara Umum" }
+            ]
+        };
+
+        // INIT ON LOAD
+        window.onload = function() {
+            showLoginView();
+        };
+
+        // AUTHENTICATION LOGIC
+        function handleLogin(e) {
+            e.preventDefault();
+            var username = document.getElementById('loginUsername').value.trim().toLowerCase();
+            var password = document.getElementById('loginPassword').value.trim();
+
+            if (USERS_DB[username] && (USERS_DB[username].password === password || password === '123456' || password === '123')) {
+                var user = USERS_DB[username];
+                state.currentUser = { username: username, ...user };
+                state.isLoggedIn = true;
+
+                showToast('Selamat datang, ' + user.name + '!');
+                
+                if (user.linkedGang) state.activeGang = user.linkedGang;
+                if (user.linkedId) {
+                    setTimeout(function() {
+                        var searchEl = document.getElementById('wargaSearchId');
+                        if (searchEl) searchEl.value = user.linkedId;
+                        checkWargaStatus();
+                    }, 200);
+                }
+
+                switchRole(user.role);
+            } else {
+                showToast('Username atau password salah. Silakan coba lagi.', 'error');
+            }
+        }
+
+        function quickLogin(username, password) {
+            document.getElementById('loginUsername').value = username;
+            document.getElementById('loginPassword').value = password;
+            handleLogin(new Event('submit'));
+        }
+
+        function logout() {
+            state.currentUser = null;
+            state.isLoggedIn = false;
+            showLoginView();
+            showToast('Anda telah keluar dari akun.');
+        }
+
+        function showLoginView() {
+            var views = ['view-login', 'view-warga', 'view-admin', 'view-bendahara_gang', 'view-bendahara_umum'];
+            views.forEach(function(v) {
+                var el = document.getElementById(v);
+                if (el) el.classList.add('hidden');
+            });
+
+            document.getElementById('view-login').classList.remove('hidden');
+            document.getElementById('userInfoHeader').classList.add('hidden');
+            document.getElementById('roleSelectorContainer').classList.add('hidden');
+
+            var badge = document.getElementById('roleBadge');
+            badge.className = 'bg-sky-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+            badge.innerText = 'Portal Login';
+            document.getElementById('roleDescription').innerText = 'Silakan login dengan akun username dan password Anda.';
+        }
+
+        function checkAuthAndRedirect() {
+            if (!state.isLoggedIn) {
+                showLoginView();
+            }
+        }
+
+        function openDeploymentModal() {
+            document.getElementById('modalDeployment').classList.remove('hidden');
+        }
+
+        // ROLE SWITCHER LOGIC OVERRIDE WITH AUTH SESSION
+        function switchRole(role) {
+            if (!state.isLoggedIn && role !== 'login') {
+                showLoginView();
+                return;
+            }
+
+            state.activeRole = role;
+            
+            // Hide all views
+            var roles = ['login', 'warga', 'admin', 'bendahara_gang', 'bendahara_umum'];
+            for (var i = 0; i < roles.length; i++) {
+                var el = document.getElementById('view-' + roles[i]);
+                if (el) el.classList.add('hidden');
+            }
+
+            // Show target view
+            var activeEl = document.getElementById('view-' + role);
+            if (activeEl) activeEl.classList.remove('hidden');
+
+            // Header User Updates
+            document.getElementById('userInfoHeader').classList.remove('hidden');
+            document.getElementById('roleSelectorContainer').classList.remove('hidden');
+            document.getElementById('userNameHeader').innerText = state.currentUser ? state.currentUser.name : 'Pengguna';
+            document.getElementById('userAvatar').innerText = state.currentUser ? state.currentUser.name.charAt(0) : 'U';
+
+            var badge = document.getElementById('roleBadge');
+            var desc = document.getElementById('roleDescription');
+
+            if (role === 'warga') {
+                badge.className = 'bg-sky-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                badge.innerText = 'Warga / Penghuni';
+                desc.innerText = 'Cek besaran tagihan, riwayat lunas, dan tunggakan iuran rumah Anda.';
+                checkWargaStatus();
+            } else if (role === 'admin') {
+                badge.className = 'bg-purple-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                badge.innerText = 'Admin RT';
+                desc.innerText = 'Kelola database warga, penambahan rumah baru, dan status huni (Huni / Tidak Huni).';
+                renderAdminTable();
+            } else if (role === 'bendahara_gang') {
+                badge.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                badge.innerText = 'Bendahara Gang';
+                desc.innerText = 'Koleksi iuran tunai di gang Anda dan rekap laporan untuk disetorkan ke Bendahara Umum.';
+                
+                var gangSel = document.getElementById('gangTreasurerSelect');
+                if (gangSel && state.currentUser && state.currentUser.linkedGang) {
+                    gangSel.value = state.currentUser.linkedGang;
+                    state.activeGang = state.currentUser.linkedGang;
+                }
+                renderBendaharaGang();
+            } else if (role === 'bendahara_umum') {
+                badge.className = 'bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                badge.innerText = 'Bendahara Umum';
+                desc.innerText = 'Kelola Kas Utama RT, pengeluaran operasional komplek, dan mutasi iuran dari seluruh gang.';
+                renderBendaharaUmum();
+            }
+
+            document.getElementById('userRoleHeader').innerText = badge.innerText;
+        }
+
+        function showToast(message, type) {
+            var alertType = type || 'success';
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            var bgClass = alertType === 'success' ? 'bg-slate-900 text-emerald-400 border-emerald-500' : 'bg-rose-900 text-rose-200 border-rose-500';
+            toast.className = bgClass + ' border px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center justify-between gap-3 transition-all duration-300 transform translate-y-2';
+            toast.innerHTML = '<span><i class="fa-solid fa-circle-info mr-1.5"></i> ' + message + '</span><button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white">&times;</button>';
+            container.appendChild(toast);
+            setTimeout(function() {
+                if (toast.parentElement) toast.remove();
+            }, 4000);
+        }
+
+        // ROLE SWITCHER LOGIC
+        function switchRole(role) {
+            state.activeRole = role;
+            
+            // Hide all views
+            var roles = ['warga', 'admin', 'bendahara_gang', 'bendahara_umum'];
+            for (var i = 0; i < roles.length; i++) {
+                var el = document.getElementById('view-' + roles[i]);
+                if (el) el.classList.add('hidden');
+            }
+
+            // Show target view
+            var activeEl = document.getElementById('view-' + role);
+            if (activeEl) activeEl.classList.remove('hidden');
+
+            // Update Header Badges
+            var badge = document.getElementById('roleBadge');
+            var desc = document.getElementById('roleDescription');
+
+            if (role === 'warga') {
+                badge.className = 'bg-sky-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                badge.innerText = 'Warga / Penghuni';
+                desc.innerText = 'Cek besaran tagihan, riwayat lunas, dan tunggakan iuran rumah Anda.';
+                checkWargaStatus();
+            } else if (role === 'admin') {
+                badge.className = 'bg-purple-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                badge.innerText = 'Admin RT';
+                desc.innerText = 'Kelola database warga, penambahan rumah baru, dan status huni (Huni / Tidak Huni).';
+                renderAdminTable();
+            } else if (role === 'bendahara_gang') {
+                badge.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                badge.innerText = 'Bendahara Gang';
+                desc.innerText = 'Koleksi iuran tunai di gang Anda dan rekap laporan untuk disetorkan ke Bendahara Umum.';
+                renderBendaharaGang();
+            } else if (role === 'bendahara_umum') {
+                badge.className = 'bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                badge.innerText = 'Bendahara Umum';
+                desc.innerText = 'Kelola Kas Utama RT, pengeluaran operasional komplek, dan mutasi iuran dari seluruh gang.';
+                renderBendaharaUmum();
+            }
+        }
+
+        // ====================================================================
+        // WARGA ROLE LOGIC
+        // ====================================================================
+        function setWargaSearch(id) {
+            document.getElementById('wargaSearchId').value = id;
+            checkWargaStatus();
+        }
+
+        function checkWargaStatus() {
+            var searchInput = document.getElementById('wargaSearchId');
+            if (!searchInput) return;
+            var searchVal = searchInput.value.trim().toUpperCase();
+            if (!searchVal) {
+                showToast('Masukkan ID Rumah atau No Jalan terlebih dahulu', 'error');
+                return;
+            }
+
+            // Find Warga by ID or No Rumah
+            var warga = state.wargaList.find(function(w) {
+                return w.id.toUpperCase() === searchVal || w.noRumah === searchVal;
+            });
+
+            var resultSection = document.getElementById('wargaResultSection');
+            if (!warga) {
+                if (resultSection) resultSection.classList.add('hidden');
+                showToast('Data Warga dengan ID "' + searchVal + '" tidak ditemukan.', 'error');
+                return;
+            }
+
+            if (resultSection) resultSection.classList.remove('hidden');
+
+            // Set Resident Basic Details
+            document.getElementById('residenceIdBadge').innerText = warga.id;
+            document.getElementById('residenceOwnerName').innerText = warga.nama;
+            document.getElementById('residenceAddress').innerHTML = '<i class="fa-solid fa-location-dot text-rose-500 mr-1.5"></i> ' + warga.gang + ' No. ' + warga.noRumah;
+
+            var isHuni = warga.statusHuni === 'HUNI';
+            var statusBadge = document.getElementById('residenceStatusBadge');
+            statusBadge.className = isHuni 
+                ? 'bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200'
+                : 'bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-200';
+            statusBadge.innerHTML = isHuni 
+                ? '<i class="fa-solid fa-house-chimney-user mr-1"></i> STATUS: HUNI'
+                : '<i class="fa-solid fa-house-circle-xmark mr-1"></i> STATUS: TIDAK HUNI';
+
+            var monthlyTariff = isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
+            document.getElementById('residenceTariff').innerText = 'Nominal Iuran: ' + formatRupiah(monthlyTariff) + ' / Bulan';
+
+            // Calculate Paid vs Unpaid Grid
+            var currentYear = 2026;
+            var currentMonthIndex = 7; // August = Index 7
+            var totalPaid = 0;
+            var totalUnpaid = 0;
+
+            var gridContainer = document.getElementById('monthlyGrid');
+            gridContainer.innerHTML = '';
+
+            MONTHS.forEach(function(month, index) {
+                var key = warga.id + '_' + month + '_' + currentYear;
+                var isPaid = !!state.iuranRecords[key];
+                var isPastOrCurrent = index <= currentMonthIndex;
+
+                var cardBg = 'bg-slate-50 border-slate-200 text-slate-400';
+                var statusTag = '<span class="text-[10px] text-slate-400 font-medium">Belum Jatuh Tempo</span>';
+
+                if (isPaid) {
+                    totalPaid += state.iuranRecords[key].nominal;
+                    cardBg = 'bg-emerald-50 border-emerald-200 text-emerald-800';
+                    statusTag = '<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-check mr-1"></i>LUNAS</span>';
+                } else if (isPastOrCurrent) {
+                    totalUnpaid += monthlyTariff;
+                    cardBg = 'bg-rose-50 border-rose-200 text-rose-800';
+                    statusTag = '<span class="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark mr-1"></i>BELUM</span>';
+                }
+
+                gridContainer.innerHTML += 
+                    '<div class="' + cardBg + ' border rounded-xl p-3 flex flex-col justify-between space-y-2">' +
+                        '<div class="flex justify-between items-center">' +
+                            '<span class="text-xs font-bold uppercase">' + month + '</span>' +
+                            statusTag +
+                        '</div>' +
+                        '<div class="text-sm font-extrabold">' + formatRupiah(monthlyTariff) + '</div>' +
+                        '<div class="text-[10px] text-slate-400">' +
+                            (isPaid ? '<i class="fa-solid fa-calendar text-emerald-500 mr-1"></i>Tgl: ' + state.iuranRecords[key].date : 'Tagihan RT') +
+                        '</div>' +
+                    '</div>';
+            });
+
+            document.getElementById('residencePaidTotal').innerText = formatRupiah(totalPaid);
+            document.getElementById('residenceUnpaidTotal').innerText = formatRupiah(totalUnpaid);
+        }
+
+        // ====================================================================
+        // ADMIN ROLE LOGIC
+        // ====================================================================
+        function renderAdminTable() {
+            var search = document.getElementById('adminFilterSearch').value.toLowerCase();
+            var gangFilter = document.getElementById('adminFilterGang').value;
+            var statusFilter = document.getElementById('adminFilterStatus').value;
+
+            var filtered = state.wargaList.filter(function(w) {
+                var matchSearch = w.nama.toLowerCase().indexOf(search) !== -1 || w.id.toLowerCase().indexOf(search) !== -1 || w.noRumah.toLowerCase().indexOf(search) !== -1;
+                var matchGang = gangFilter === 'ALL' || w.gang === gangFilter;
+                var matchStatus = statusFilter === 'ALL' || w.statusHuni === statusFilter;
+                return matchSearch && matchGang && matchStatus;
+            });
+
+            // Update Counts
+            document.getElementById('adminTotalHouses').innerText = state.wargaList.length + ' Rumah';
+            document.getElementById('adminTotalHuni').innerText = state.wargaList.filter(function(w) { return w.statusHuni === 'HUNI'; }).length + ' Rumah';
+            document.getElementById('adminTotalTidakHuni').innerText = state.wargaList.filter(function(w) { return w.statusHuni === 'TIDAK_HUNI'; }).length + ' Rumah';
+
+            var tbody = document.getElementById('adminWargaTableBody');
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-6 text-xs text-slate-400">Tidak ada data warga yang cocok.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(function(w) {
+                var isHuni = w.statusHuni === 'HUNI';
+                tbody.innerHTML += 
+                    '<tr class="hover:bg-slate-50 transition-all">' +
+                        '<td class="p-4 font-mono font-bold text-sky-700">' + w.id + '</td>' +
+                        '<td class="p-4 font-semibold text-slate-800">' + w.nama + '</td>' +
+                        '<td class="p-4">' + w.gang + '</td>' +
+                        '<td class="p-4 text-xs font-mono">' + (w.hp || '-') + '</td>' +
+                        '<td class="p-4">' +
+                            '<span class="' + (isHuni ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700') + ' text-[11px] font-bold px-2.5 py-1 rounded-full">' +
+                                (isHuni ? 'HUNI' : 'TIDAK HUNI') +
+                            '</span>' +
+                        '</td>' +
+                        '<td class="p-4 font-semibold text-slate-700">' + formatRupiah(isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI) + '</td>' +
+                        '<td class="p-4 text-center space-x-1">' +
+                            '<button onclick="editWarga(\'' + w.id + '\')" class="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-sky-50"><i class="fa-solid fa-pen-to-square"></i></button>' +
+                            '<button onclick="confirmDeleteWarga(\'' + w.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50"><i class="fa-solid fa-trash"></i></button>' +
+                        '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function openModalAddWarga() {
+            document.getElementById('modalWargaTitle').innerText = 'Tambah Data Warga Baru';
+            document.getElementById('wargaFormOriginalId').value = '';
+            document.getElementById('wargaFormNama').value = '';
+            document.getElementById('wargaFormNoRumah').value = '';
+            document.getElementById('wargaFormHp').value = '';
+            document.getElementById('wargaFormGang').value = 'Gang 1';
+            document.getElementById('wargaFormStatus').value = 'HUNI';
+            updatePrimaryIdPreview();
+            document.getElementById('modalWarga').classList.remove('hidden');
+        }
+
+        function updatePrimaryIdPreview() {
+            var gang = document.getElementById('wargaFormGang').value;
+            var no = document.getElementById('wargaFormNoRumah').value.trim() || '00';
+            var gangCode = gang === 'Gang 1' ? 'G1' : (gang === 'Gang 2' ? 'G2' : 'G3');
+            var paddedNo = ('0' + no).slice(-2);
+            document.getElementById('primaryIdPreview').innerText = gangCode + '-' + paddedNo;
+        }
+
+        function saveWarga(e) {
+            e.preventDefault();
+            var originalId = document.getElementById('wargaFormOriginalId').value;
+            var gang = document.getElementById('wargaFormGang').value;
+            var noRumah = document.getElementById('wargaFormNoRumah').value.trim();
+            var nama = document.getElementById('wargaFormNama').value.trim();
+            var hp = document.getElementById('wargaFormHp').value.trim();
+            var statusHuni = document.getElementById('wargaFormStatus').value;
+
+            var gangCode = gang === 'Gang 1' ? 'G1' : (gang === 'Gang 2' ? 'G2' : 'G3');
+            var paddedNo = ('0' + noRumah).slice(-2);
+            var primaryId = gangCode + '-' + paddedNo;
+
+            if (originalId) {
+                var idx = state.wargaList.findIndex(function(w) { return w.id === originalId; });
+                if (idx !== -1) {
+                    state.wargaList[idx] = { id: primaryId, gang: gang, noRumah: noRumah, nama: nama, hp: hp, statusHuni: statusHuni, rate: statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI };
+                    showToast('Data warga ' + nama + ' berhasil diperbarui.');
+                }
+            } else {
+                if (state.wargaList.some(function(w) { return w.id === primaryId; })) {
+                    showToast('Rumah dengan ID ' + primaryId + ' sudah ada!', 'error');
+                    return;
+                }
+                state.wargaList.push({ id: primaryId, gang: gang, noRumah: noRumah, nama: nama, hp: hp, statusHuni: statusHuni, rate: statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI });
+                showToast('Warga baru ' + nama + ' (' + primaryId + ') berhasil ditambahkan!');
+            }
+
+            closeModal('modalWarga');
+            renderAdminTable();
+        }
+
+        function editWarga(id) {
+            var w = state.wargaList.find(function(item) { return item.id === id; });
+            if (!w) return;
+
+            document.getElementById('modalWargaTitle').innerText = 'Ubah Data Warga';
+            document.getElementById('wargaFormOriginalId').value = w.id;
+            document.getElementById('wargaFormNama').value = w.nama;
+            document.getElementById('wargaFormNoRumah').value = w.noRumah;
+            document.getElementById('wargaFormHp').value = w.hp;
+            document.getElementById('wargaFormGang').value = w.gang;
+            document.getElementById('wargaFormStatus').value = w.statusHuni;
+            updatePrimaryIdPreview();
+            document.getElementById('modalWarga').classList.remove('hidden');
+        }
+
+        function confirmDeleteWarga(id) {
+            state.pendingDeleteId = id;
+            document.getElementById('confirmMessageText').innerText = 'Apakah Anda yakin ingin menghapus data warga dengan ID ' + id + '?';
+            document.getElementById('confirmExecuteBtn').onclick = function() {
+                executeDeleteWarga();
+            };
+            document.getElementById('modalConfirm').classList.remove('hidden');
+        }
+
+        function executeDeleteWarga() {
+            var id = state.pendingDeleteId;
+            if (id) {
+                state.wargaList = state.wargaList.filter(function(w) { return w.id !== id; });
+                showToast('Data ' + id + ' telah dihapus.');
+                renderAdminTable();
+            }
+            closeModal('modalConfirm');
+        }
+
+        // ====================================================================
+        // BENDAHARA GANG LOGIC
+        // ====================================================================
+        function switchGangTreasurer(gang) {
+            state.activeGang = gang;
+            renderBendaharaGang();
+        }
+
+        function renderBendaharaGang() {
+            var gang = state.activeGang;
+            document.getElementById('activeGangNameLabel').innerText = gang;
+
+            var gangWarga = state.wargaList.filter(function(w) { return w.gang === gang; });
+            var currentMonth = "Agustus";
+            var currentYear = 2026;
+
+            var collected = 0;
+            var paidCount = 0;
+            var unpaidCount = 0;
+
+            var tbody = document.getElementById('gangWargaTableBody');
+            tbody.innerHTML = '';
+
+            gangWarga.forEach(function(w) {
+                var key = w.id + '_' + currentMonth + '_' + currentYear;
+                var isPaid = !!state.iuranRecords[key];
+                var monthlyRate = w.statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
+
+                if (isPaid) {
+                    collected += state.iuranRecords[key].nominal;
+                    paidCount++;
+                } else {
+                    unpaidCount++;
+                }
+
+                tbody.innerHTML += 
+                    '<tr class="hover:bg-slate-50">' +
+                        '<td class="p-3 font-mono font-bold text-sky-700">' + w.id + '</td>' +
+                        '<td class="p-3 font-semibold text-slate-800">' + w.nama + '</td>' +
+                        '<td class="p-3">' +
+                            '<span class="' + (w.statusHuni === 'HUNI' ? 'text-emerald-700 bg-emerald-50' : 'text-amber-700 bg-amber-50') + ' text-xs font-bold px-2 py-0.5 rounded">' +
+                                w.statusHuni +
+                            '</span>' +
+                        '</td>' +
+                        '<td class="p-3 font-semibold">' + formatRupiah(monthlyRate) + '</td>' +
+                        '<td class="p-3">' +
+                            (isPaid 
+                                ? '<span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-xs"><i class="fa-solid fa-check mr-1"></i>LUNAS</span>' 
+                                : '<span class="bg-rose-100 text-rose-700 font-bold px-2.5 py-1 rounded-full text-xs"><i class="fa-solid fa-clock mr-1"></i>BELUM BAYAR</span>') +
+                        '</td>' +
+                        '<td class="p-3 text-center">' +
+                            (!isPaid 
+                                ? '<button onclick="quickPayIuran(\'' + w.id + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1 rounded-lg font-bold shadow-sm">+ Terima Iuran</button>' 
+                                : '<span class="text-xs text-slate-400 italic">Terbayar (' + state.iuranRecords[key].method + ')</span>') +
+                        '</td>' +
+                    '</tr>';
+            });
+
+            document.getElementById('gangSummaryCollected').innerText = formatRupiah(collected);
+            document.getElementById('gangSummaryPaidCount').innerText = paidCount + ' / ' + gangWarga.length + ' Rumah';
+            document.getElementById('gangSummaryUnpaidCount').innerText = unpaidCount + ' Rumah';
+        }
+
+        function openModalCatatIuran() {
+            var select = document.getElementById('iuranFormWargaId');
+            select.innerHTML = '';
+
+            state.wargaList.forEach(function(w) {
+                select.innerHTML += '<option value="' + w.id + '">' + w.id + ' - ' + w.nama + ' (' + w.gang + ')</option>';
+            });
+
+            onIuranWargaSelected();
+            document.getElementById('modalIuran').classList.remove('hidden');
+        }
+
+        function quickPayIuran(wargaId) {
+            openModalCatatIuran();
+            document.getElementById('iuranFormWargaId').value = wargaId;
+            onIuranWargaSelected();
+        }
+
+        function onIuranWargaSelected() {
+            var wargaId = document.getElementById('iuranFormWargaId').value;
+            var w = state.wargaList.find(function(item) { return item.id === wargaId; });
+            if (!w) return;
+
+            var isHuni = w.statusHuni === 'HUNI';
+            var rate = isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
+
+            document.getElementById('iuranWargaStatusInfo').innerText = isHuni ? 'Dihuni (Full)' : 'Tidak Dihuni (Kebersihan)';
+            document.getElementById('iuranWargaTariffInfo').innerText = formatRupiah(rate);
+            document.getElementById('iuranFormNominal').value = rate;
+        }
+
+        function saveIuran(e) {
+            e.preventDefault();
+            var wargaId = document.getElementById('iuranFormWargaId').value;
+            var bulan = document.getElementById('iuranFormBulan').value;
+            var tahun = document.getElementById('iuranFormTahun').value;
+            var nominal = parseInt(document.getElementById('iuranFormNominal').value, 10);
+            var metode = document.getElementById('iuranFormMetode').value;
+
+            var key = wargaId + '_' + bulan + '_' + tahun;
+            var collector = state.activeRole === 'bendahara_gang' ? 'Bendahara ' + state.activeGang : 'Bendahara Umum';
+
+            state.iuranRecords[key] = {
+                nominal: nominal,
+                date: new Date().toISOString().split('T')[0],
+                method: metode,
+                collector: collector
+            };
+
+            // Automatically record in General Ledger if paid
+            state.ledger.unshift({
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                type: 'PEMASUKAN',
+                category: 'Iuran Warga (' + wargaId + ')',
+                note: 'Iuran Bulan ' + bulan + ' ' + tahun + ' - ' + wargaId + ' via ' + metode,
+                amount: nominal,
+                officer: collector
+            });
+
+            showToast('Iuran ' + wargaId + ' bulan ' + bulan + ' ' + tahun + ' sebesar ' + formatRupiah(nominal) + ' berhasil dicatat!');
+            closeModal('modalIuran');
+
+            if (state.activeRole === 'bendahara_gang') renderBendaharaGang();
+            if (state.activeRole === 'bendahara_umum') renderBendaharaUmum();
+        }
+
+        // ====================================================================
+        // BENDAHARA UMUM LOGIC
+        // ====================================================================
+        function renderBendaharaUmum() {
+            var totalIncome = 0;
+            var totalExpense = 0;
+
+            state.ledger.forEach(function(item) {
+                if (item.type === 'PEMASUKAN') totalIncome += item.amount;
+                if (item.type === 'PENGELUARAN') totalExpense += item.amount;
+            });
+
+            var currentBalance = totalIncome - totalExpense;
+
+            document.getElementById('generalBalance').innerText = formatRupiah(currentBalance);
+            document.getElementById('generalIncomeMonth').innerText = formatRupiah(totalIncome);
+            document.getElementById('generalExpenseMonth').innerText = formatRupiah(totalExpense);
+
+            renderLedgerTable();
+        }
+
+        function renderLedgerTable() {
+            var filter = document.getElementById('ledgerTypeFilter').value;
+            var tbody = document.getElementById('ledgerTableBody');
+            tbody.innerHTML = '';
+
+            var filtered = state.ledger.filter(function(item) { return filter === 'ALL' || item.type === filter; });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-xs text-slate-400">Belum ada catatan mutasi kas.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(function(item) {
+                var isIncome = item.type === 'PEMASUKAN';
+                tbody.innerHTML += 
+                    '<tr class="hover:bg-slate-50">' +
+                        '<td class="p-4 font-mono text-xs text-slate-500">' + item.date + '</td>' +
+                        '<td class="p-4">' +
+                            '<span class="' + (isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700') + ' text-[10px] font-bold px-2 py-0.5 rounded-full">' +
+                                (isIncome ? 'MASUK' : 'KELUAR') +
+                            '</span>' +
+                        '</td>' +
+                        '<td class="p-4 font-semibold text-slate-800">' + item.category + '</td>' +
+                        '<td class="p-4 text-xs text-slate-500">' + item.note + '</td>' +
+                        '<td class="p-4 font-bold ' + (isIncome ? 'text-emerald-600' : 'text-rose-600') + '">' +
+                            (isIncome ? '+' : '-') + ' ' + formatRupiah(item.amount) +
+                        '</td>' +
+                        '<td class="p-4 text-xs font-medium text-slate-600">' + item.officer + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function openModalTransaction(type) {
+            document.getElementById('transFormType').value = type;
+            document.getElementById('modalTransTitle').innerText = type === 'PEMASUKAN' ? 'Input Kas Masuk RT' : 'Input Kas Keluar RT';
+            
+            var submitBtn = document.getElementById('transSubmitBtn');
+            submitBtn.className = type === 'PEMASUKAN' 
+                ? 'px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md'
+                : 'px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md';
+
+            var kategoriSelect = document.getElementById('transFormKategori');
+            kategoriSelect.innerHTML = '';
+
+            var options = type === 'PEMASUKAN' 
+                ? ['Setoran Bendahara Gang 1', 'Setoran Bendahara Gang 2', 'Setoran Bendahara Gang 3', 'Donasi Warga', 'Lain-lain']
+                : ['Honor Keamanan', 'Kebersihan & Sampah', 'Perbaikan Lampu Jalan', 'Acara RT / 17an', 'Lain-lain'];
+
+            options.forEach(function(opt) {
+                kategoriSelect.innerHTML += '<option value="' + opt + '">' + opt + '</option>';
+            });
+
+            document.getElementById('transFormNominal').value = '';
+            document.getElementById('transFormKet').value = '';
+            document.getElementById('modalTrans').classList.remove('hidden');
+        }
+
+        function saveTransaction(e) {
+            e.preventDefault();
+            var type = document.getElementById('transFormType').value;
+            var category = document.getElementById('transFormKategori').value;
+            var nominal = parseInt(document.getElementById('transFormNominal').value, 10);
+            var note = document.getElementById('transFormKet').value;
+
+            state.ledger.unshift({
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                type: type,
+                category: category,
+                note: note,
+                amount: nominal,
+                officer: 'Bendahara Umum'
+            });
+
+            showToast('Transaksi ' + type.toLowerCase() + ' sebesar ' + formatRupiah(nominal) + ' berhasil disimpan!');
+            closeModal('modalTrans');
+            renderBendaharaUmum();
+        }
+
+        // EXPORT & MODAL HELPERS
+        function closeModal(id) {
+            var modal = document.getElementById(id);
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function openAppsScriptModal() {
+            var modal = document.getElementById('modalAppsScript');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function copyAppsScriptCode() {
+            var code = document.getElementById('appsScriptCode').innerText;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(function() {
+                    showToast('Kode Google Apps Script berhasil disalin!');
+                }).catch(function() {
+                    showToast('Gagal menyalin kode, salin secara manual.', 'error');
+                });
+            } else {
+                showToast('Fitur salin otomatis tidak didukung di browser ini, silakan salin manual.', 'error');
+            }
+        }
+
+        function exportToCSV() {
+            var csv = 'Tanggal,Jenis,Kategori,Keterangan,Nominal,Petugas\n';
+            state.ledger.forEach(function(row) {
+                csv += '"' + row.date + '","' + row.type + '","' + row.category + '","' + row.note + '",' + row.amount + ',"' + row.officer + '"\n';
+            });
+
+            var blob = new Blob([csv], { type: 'text/csv' });
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'Laporan_Kas_RT_' + new Date().toISOString().split('T')[0] + '.csv');
+            a.click();
+            showToast('Laporan Kas RT berhasil diunduh sebagai CSV!');
+        }
+    </script>
+</body>
+</html>
