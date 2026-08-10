@@ -11,7 +11,9 @@
     <!-- Chart.js for Financial Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // GOOGLE APPS SCRIPT WEB APP URL
         const GSHEET_API_URL = "https://script.google.com/macros/s/AKfycbxVcblzARa4B8sXcp6bgyk2M0KoxA5euqVAzhF9F5o55vWXYXPMbQjPAHiCXXoK85yx/exec";
+        
         tailwind.config = {
             theme: {
                 extend: {
@@ -43,7 +45,6 @@
             color: #0284c7;
             font-weight: 600;
         }
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -76,6 +77,11 @@
 
                 <!-- User Session & Logout / Switch Role -->
                 <div class="flex items-center space-x-3">
+                    <div id="syncBadge" class="hidden sm:flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 text-[11px] text-emerald-400 font-medium">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="syncText">GSheet Synced</span>
+                    </div>
+
                     <div id="userInfoHeader" class="hidden flex items-center space-x-3 bg-slate-800 p-1.5 px-3 rounded-xl border border-slate-700">
                         <div class="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center font-bold text-white text-xs" id="userAvatar">
                             A
@@ -128,7 +134,6 @@
         <!-- NOTIFICATION CONTAINER -->
         <div id="toastContainer" class="fixed top-20 right-5 z-50 flex flex-col gap-2"></div>
 
-        <!-- -->
         <!-- ==================================================================== -->
         <!-- VIEW 0: LOGIN SYSTEM SECTION -->
         <!-- ==================================================================== -->
@@ -170,19 +175,19 @@
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <button onclick="quickLogin('admin', '123456')" class="p-2 bg-purple-50 hover:bg-purple-100 text-purple-800 rounded-xl border border-purple-200 text-left transition-all">
                             <div class="font-bold">🛠️ Admin RT</div>
-                            <div class="text-[10px] text-purple-600 font-mono">User: admin | Pass: 123456</div>
+                            <div class="text-[10px] text-purple-600 font-mono">User: admin | Pass: 123</div>
                         </button>
                         <button onclick="quickLogin('bumum', '123456')" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200 text-left transition-all">
                             <div class="font-bold">💰 Bendahara Umum</div>
-                            <div class="text-[10px] text-emerald-600 font-mono">User: bumum | Pass: 123456</div>
+                            <div class="text-[10px] text-emerald-600 font-mono">User: bumum | Pass: 123</div>
                         </button>
                         <button onclick="quickLogin('bgang1', '123456')" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl border border-amber-200 text-left transition-all">
                             <div class="font-bold">📑 Bendahara Gang 1</div>
-                            <div class="text-[10px] text-amber-600 font-mono">User: bgang1 | Pass: 123456</div>
+                            <div class="text-[10px] text-amber-600 font-mono">User: bgang1 | Pass: 123</div>
                         </button>
                         <button onclick="quickLogin('warga1', '123456')" class="p-2 bg-sky-50 hover:bg-sky-100 text-sky-800 rounded-xl border border-sky-200 text-left transition-all">
                             <div class="font-bold">👤 Warga (Pak Ahmad)</div>
-                            <div class="text-[10px] text-sky-600 font-mono">User: warga1 | Pass: 123456</div>
+                            <div class="text-[10px] text-sky-600 font-mono">User: warga1 | Pass: 123</div>
                         </button>
                     </div>
                 </div>
@@ -192,8 +197,525 @@
         <!-- ==================================================================== -->
         <!-- VIEW 1: PORTAL WARGA -->
         <!-- ==================================================================== -->
+        <section id="view-warga" class="hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Cek Status Tagihan & Iuran Warga</h2>
+                        <p class="text-xs text-slate-500">Masukkan ID Rumah / Blok Gang Anda untuk melihat histori iuran tahunan.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="wargaSearchId" placeholder="Contoh ID: G1-01" class="px-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold uppercase focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <button onclick="checkWargaStatus()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md">
+                            <i class="fa-solid fa-magnifying-glass mr-1"></i> Cari
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 text-xs pt-2 border-t border-slate-100">
+                    <span class="text-slate-400 font-medium">Contoh Rumah:</span>
+                    <button onclick="setWargaSearch('G1-01')" class="bg-slate-100 hover:bg-sky-100 text-sky-700 font-semibold px-2.5 py-1 rounded-lg">G1-01 (Pak Ahmad)</button>
+                    <button onclick="setWargaSearch('G2-08')" class="bg-slate-100 hover:bg-amber-100 text-amber-700 font-semibold px-2.5 py-1 rounded-lg">G2-08 (Siti Rahmawati)</button>
+                    <button onclick="setWargaSearch('G3-04')" class="bg-slate-100 hover:bg-purple-100 text-purple-700 font-semibold px-2.5 py-1 rounded-lg">G3-04 (Bambang Tri)</button>
+                </div>
+            </div>
+
+            <div id="wargaResultSection" class="hidden space-y-6">
+                <!-- Resident Header Card -->
+                <div class="bg-gradient-to-r from-slate-900 to-sky-900 text-white rounded-3xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-3">
+                            <span id="residenceIdBadge" class="bg-sky-500 text-white font-mono font-bold px-3 py-1 rounded-xl text-xs shadow-sm">G1-01</span>
+                            <span id="residenceStatusBadge" class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30">HUNI</span>
+                        </div>
+                        <h3 id="residenceOwnerName" class="text-2xl font-extrabold tracking-tight">Ahmad Subagja</h3>
+                        <p id="residenceAddress" class="text-xs text-sky-200"><i class="fa-solid fa-location-dot text-rose-400 mr-1.5"></i> Gang 1 No. 01</p>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex gap-6 text-center">
+                        <div>
+                            <div class="text-[10px] uppercase text-sky-300 font-medium">Total Lunas</div>
+                            <div id="residencePaidTotal" class="text-lg font-bold text-emerald-400">Rp 0</div>
+                        </div>
+                        <div class="border-r border-white/20"></div>
+                        <div>
+                            <div class="text-[10px] uppercase text-sky-300 font-medium">Tunggakan</div>
+                            <div id="residenceUnpaidTotal" class="text-lg font-bold text-rose-400">Rp 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Status Cards Grid -->
+                <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-calendar-days text-sky-600 mr-2"></i> Status Iuran Bulanan Tahun 2026</h4>
+                        <span id="residenceTariff" class="text-xs font-semibold text-slate-500">Nominal: Rp 50.000 / Bulan</span>
+                    </div>
+
+                    <div id="monthlyGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================== -->
+        <!-- VIEW 2: ADMIN RT -->
+        <!-- ==================================================================== -->
         <section id="view-admin" class="hidden space-y-6">
-    <!-- -->
+            <!-- Stats Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Total Rumah Terdaftar</p>
+                        <h3 id="adminTotalHouses" class="text-2xl font-extrabold text-slate-800 mt-1">0 Rumah</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-house font-bold"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Rumah Dihuni (Full Rate)</p>
+                        <h3 id="adminTotalHuni" class="text-2xl font-extrabold text-emerald-600 mt-1">0 Rumah</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Rumah Tidak Dihuni (Kebersihan)</p>
+                        <h3 id="adminTotalTidakHuni" class="text-2xl font-extrabold text-amber-600 mt-1">0 Rumah</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-house-circle-xmark"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table & Filter Header -->
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">Kelola Data Warga RT 05</h3>
+                        <p class="text-xs text-slate-500">Tambah, ubah, atau atur status rumah warga.</p>
+                    </div>
+                    <button onclick="openModalAddWarga()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Tambah Warga Baru
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-slate-100">
+                    <input type="text" id="adminFilterSearch" oninput="renderAdminTable()" placeholder="Cari nama / ID rumah..." class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                    <select id="adminFilterGang" onchange="renderAdminTable()" class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none">
+                        <option value="ALL">Semua Gang</option>
+                        <option value="Gang 1">Gang 1</option>
+                        <option value="Gang 2">Gang 2</option>
+                        <option value="Gang 3">Gang 3</option>
+                    </select>
+                    <select id="adminFilterStatus" onchange="renderAdminTable()" class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none">
+                        <option value="ALL">Semua Status Huni</option>
+                        <option value="HUNI">HUNI (Rp 50.000)</option>
+                        <option value="TIDAK_HUNI">TIDAK HUNI (Rp 25.000)</option>
+                    </select>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                                <th class="p-3">ID Rumah</th>
+                                <th class="p-3">Nama Penghuni</th>
+                                <th class="p-3">Gang / Jalan</th>
+                                <th class="p-3">No. HP</th>
+                                <th class="p-3">Status Huni</th>
+                                <th class="p-3">Tarif Iuran</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminWargaTableBody" class="divide-y divide-slate-100">
+                            <!-- Dynamically generated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================== -->
+        <!-- VIEW 3: BENDAHARA GANG -->
+        <!-- ==================================================================== -->
+        <section id="view-bendahara_gang" class="hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">Penerimaan Iuran Tunai Per Gang</h3>
+                        <p class="text-xs text-slate-500">Pencatatan iuran bulanan dari pintu ke pintu oleh Bendahara Gang.</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <label class="text-xs font-bold text-slate-600">Pilih Gang:</label>
+                        <select id="gangTreasurerSelect" onchange="switchGangTreasurer(this.value)" class="px-4 py-2 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs font-bold focus:outline-none">
+                            <option value="Gang 1">Gang 1</option>
+                            <option value="Gang 2">Gang 2</option>
+                            <option value="Gang 3">Gang 3</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200">
+                        <p class="text-[11px] font-bold text-amber-800 uppercase">Total Terkumpul Bulan Ini (<span id="activeGangNameLabel">Gang 1</span>)</p>
+                        <h4 id="gangSummaryCollected" class="text-xl font-extrabold text-amber-900 mt-1">Rp 0</h4>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+                        <p class="text-[11px] font-bold text-emerald-800 uppercase">Rumah Lunas</p>
+                        <h4 id="gangSummaryPaidCount" class="text-xl font-extrabold text-emerald-900 mt-1">0 Rumah</h4>
+                    </div>
+                    <div class="bg-rose-50 p-4 rounded-2xl border border-rose-200">
+                        <p class="text-[11px] font-bold text-rose-800 uppercase">Rumah Belum Bayar</p>
+                        <h4 id="gangSummaryUnpaidCount" class="text-xl font-extrabold text-rose-900 mt-1">0 Rumah</h4>
+                    </div>
+                </div>
+
+                <!-- Warga List in Selected Gang -->
+                <div class="overflow-x-auto pt-2">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Nama</th>
+                                <th class="p-3">Status Huni</th>
+                                <th class="p-3">Iuran/Bln</th>
+                                <th class="p-3">Status Agustus 2026</th>
+                                <th class="p-3 text-center">Aksi Terima</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gangWargaTableBody" class="divide-y divide-slate-100">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================== -->
+        <!-- VIEW 4: BENDAHARA UMUM -->
+        <!-- ==================================================================== -->
+        <section id="view-bendahara_umum" class="hidden space-y-6">
+            <!-- Balance Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-emerald-600 to-teal-800 text-white p-6 rounded-3xl shadow-lg">
+                    <p class="text-xs uppercase font-medium text-emerald-100">Saldo Utama Kas RT</p>
+                    <h2 id="generalBalance" class="text-3xl font-extrabold mt-2">Rp 0</h2>
+                    <p class="text-[10px] text-emerald-200 mt-2"><i class="fa-solid fa-shield-halved mr-1"></i> Terverifikasi & Sinkron</p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200">
+                    <p class="text-xs text-slate-500 font-medium">Total Pemasukan Kas</p>
+                    <h3 id="generalIncomeMonth" class="text-2xl font-bold text-emerald-600 mt-2">Rp 0</h3>
+                    <p class="text-[10px] text-slate-400 mt-1">Iuran Gang + Transfer Direct</p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200">
+                    <p class="text-xs text-slate-500 font-medium">Total Pengeluaran Kas</p>
+                    <h3 id="generalExpenseMonth" class="text-2xl font-bold text-rose-600 mt-2">Rp 0</h3>
+                    <p class="text-[10px] text-slate-400 mt-1">Operasional Satpam, Sampah, Dll</p>
+                </div>
+            </div>
+
+            <!-- Ledger Action Bar -->
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">Buku Kas & Mutasi Keuangan</h3>
+                        <p class="text-xs text-slate-500">Catatan aliran kas masuk dan pengeluaran operasional RT 05.</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="openModalTransaction('PEMASUKAN')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-md">
+                            <i class="fa-solid fa-plus mr-1"></i> Kas Masuk
+                        </button>
+                        <button onclick="openModalTransaction('PENGELUARAN')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-md">
+                            <i class="fa-solid fa-minus mr-1"></i> Kas Keluar
+                        </button>
+                        <button onclick="exportToCSV()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-md">
+                            <i class="fa-solid fa-file-csv mr-1"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+                    <span class="text-xs font-bold text-slate-500">Filter Jenis:</span>
+                    <select id="ledgerTypeFilter" onchange="renderLedgerTable()" class="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none">
+                        <option value="ALL">Semua Mutasi</option>
+                        <option value="PEMASUKAN">Pemasukan Saja</option>
+                        <option value="PENGELUARAN">Pengeluaran Saja</option>
+                    </select>
+                </div>
+
+                <!-- Ledger Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                                <th class="p-3">Tanggal</th>
+                                <th class="p-3">Jenis</th>
+                                <th class="p-3">Kategori</th>
+                                <th class="p-3">Keterangan</th>
+                                <th class="p-3">Nominal</th>
+                                <th class="p-3">Petugas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledgerTableBody" class="divide-y divide-slate-100">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODALS SECTION -->
+    <!-- MODAL 1: WARGA FORM -->
+    <div id="modalWarga" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeModal('modalWarga')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
+            <h3 id="modalWargaTitle" class="text-base font-bold text-slate-800">Tambah Data Warga</h3>
+            
+            <form onsubmit="saveWarga(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="wargaFormOriginalId">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Gang / Blok Jalan</label>
+                    <select id="wargaFormGang" onchange="updatePrimaryIdPreview()" class="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold">
+                        <option value="Gang 1">Gang 1</option>
+                        <option value="Gang 2">Gang 2</option>
+                        <option value="Gang 3">Gang 3</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nomor Rumah (2 Digit)</label>
+                    <input type="text" id="wargaFormNoRumah" placeholder="01" oninput="updatePrimaryIdPreview()" required class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                    <span class="text-[10px] text-slate-400">Preview ID: <strong id="primaryIdPreview" class="text-purple-600 font-mono">G1-01</strong></span>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nama Kepala Keluarga / Penghuni</label>
+                    <input type="text" id="wargaFormNama" placeholder="Nama Lengkap" required class="w-full p-2.5 bg-slate-50 border rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nomor HP / WhatsApp</label>
+                    <input type="text" id="wargaFormHp" placeholder="0812xxxx" class="w-full p-2.5 bg-slate-50 border rounded-xl">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Status Hunian</label>
+                    <select id="wargaFormStatus" class="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold">
+                        <option value="HUNI">HUNI (Rp 50.000 / Bln)</option>
+                        <option value="TIDAK_HUNI">TIDAK HUNI (Rp 25.000 / Bln)</option>
+                    </select>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modalWarga')" class="px-4 py-2 font-bold text-slate-600 bg-slate-100 rounded-xl">Batal</button>
+                    <button type="submit" class="px-5 py-2 font-bold text-white bg-purple-600 rounded-xl shadow-md">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: IURAN FORM -->
+    <div id="modalIuran" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeModal('modalIuran')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
+            <h3 class="text-base font-bold text-slate-800">Catat Penerimaan Iuran Warga</h3>
+            
+            <form onsubmit="saveIuran(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Pilih Rumah / Warga</label>
+                    <select id="iuranFormWargaId" onchange="onIuranWargaSelected()" class="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="p-3 bg-sky-50 rounded-xl text-sky-900 flex justify-between items-center text-[11px]">
+                    <div>
+                        <span class="block text-[10px] text-sky-600 uppercase font-medium">Status Hunian</span>
+                        <strong id="iuranWargaStatusInfo">Dihuni (Full)</strong>
+                    </div>
+                    <div class="text-right">
+                        <span class="block text-[10px] text-sky-600 uppercase font-medium">Tarif Iuran</span>
+                        <strong id="iuranWargaTariffInfo" class="text-sky-700 font-extrabold">Rp 50.000</strong>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Bulan</label>
+                        <select id="iuranFormBulan" class="w-full p-2.5 bg-slate-50 border rounded-xl">
+                            <option value="Agustus">Agustus</option>
+                            <option value="September">September</option>
+                            <option value="Oktober">Oktober</option>
+                            <option value="November">November</option>
+                            <option value="Desember">Desember</option>
+                            <option value="Januari">Januari</option>
+                            <option value="Februari">Februari</option>
+                            <option value="Maret">Maret</option>
+                            <option value="April">April</option>
+                            <option value="Mei">Mei</option>
+                            <option value="Juni">Juni</option>
+                            <option value="Juli">Juli</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Tahun</label>
+                        <input type="number" id="iuranFormTahun" value="2026" required class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nominal Diterima (Rp)</label>
+                    <input type="number" id="iuranFormNominal" required class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold text-sky-700">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Metode Pembayaran</label>
+                    <select id="iuranFormMetode" class="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold">
+                        <option value="TUNAI">TUNAI (Setor ke Bendahara Gang)</option>
+                        <option value="TRANSFER">TRANSFER DIRECT (Bank / QRIS)</option>
+                    </select>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modalIuran')" class="px-4 py-2 font-bold text-slate-600 bg-slate-100 rounded-xl">Batal</button>
+                    <button type="submit" class="px-5 py-2 font-bold text-white bg-emerald-600 rounded-xl shadow-md">Simpan Pembayaran</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: TRANSACTION (KAS) FORM -->
+    <div id="modalTrans" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeModal('modalTrans')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
+            <h3 id="modalTransTitle" class="text-base font-bold text-slate-800">Catat Transaksi Kas</h3>
+            
+            <form onsubmit="saveTransaction(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="transFormType" value="PEMASUKAN">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Kategori Transaksi</label>
+                    <select id="transFormKategori" class="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nominal (Rp)</label>
+                    <input type="number" id="transFormNominal" placeholder="100000" required class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Keterangan / Catatan</label>
+                    <textarea id="transFormKet" rows="3" placeholder="Deskripsi rincian transaksi..." class="w-full p-2.5 bg-slate-50 border rounded-xl"></textarea>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modalTrans')" class="px-4 py-2 font-bold text-slate-600 bg-slate-100 rounded-xl">Batal</button>
+                    <button type="submit" id="transSubmitBtn" class="px-5 py-2 font-bold text-white bg-emerald-600 rounded-xl shadow-md">Simpan Transaksi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: CONFIRMATION MODAL -->
+    <div id="modalConfirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
+            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-800">Konfirmasi Hapus</h3>
+            <p id="confirmMessageText" class="text-xs text-slate-500">Apakah Anda yakin ingin menghapus data ini?</p>
+            <div class="flex justify-center gap-2 pt-2">
+                <button onclick="closeModal('modalConfirm')" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 rounded-xl">Batal</button>
+                <button id="confirmExecuteBtn" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 rounded-xl shadow-md">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: GOOGLE APPS SCRIPT GUIDE -->
+    <div id="modalAppsScript" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 relative max-h-[85vh] overflow-y-auto">
+            <button onclick="closeModal('modalAppsScript')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
+            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-code text-sky-600"></i> Setup Google Apps Script (GSHEET_API_URL)
+            </h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Aplikasi ini membaca dan menyimpan data secara otomatis ke Google Sheet Anda melalui URL Web App Google Apps Script.
+            </p>
+
+            <div class="bg-slate-900 text-slate-100 p-3 rounded-xl relative">
+                <button onclick="copyAppsScriptCode()" class="absolute top-2 right-2 bg-sky-600 hover:bg-sky-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                    <i class="fa-solid fa-copy mr-1"></i> Salin Kode
+                </button>
+                <pre id="appsScriptCode" class="text-[10px] font-mono overflow-x-auto max-h-48 p-2">
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var dataWarga = getSheetDataAsObjects(ss.getSheetByName("Warga"));
+  var dataIuran = getSheetDataAsObjects(ss.getSheetByName("Iuran"));
+  var dataKas = getSheetDataAsObjects(ss.getSheetByName("Kas"));
+  
+  return ContentService.createTextOutput(JSON.stringify({
+    status: "success", warga: dataWarga, iuran: dataIuran, kas: dataKas
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    var contents = JSON.parse(e.postData.contents);
+    var action = contents.action;
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    if (action === "ADD_WARGA") {
+      var w = contents.data;
+      ss.getSheetByName("Warga").appendRow([w.id, w.gang, w.noRumah, w.nama, w.hp, w.statusHuni]);
+      return responseJSON({ status: "success", message: "Warga disimpan" });
+    }
+    if (action === "RECORD_IURAN") {
+      var i = contents.data;
+      ss.getSheetByName("Iuran").appendRow([i.key, i.wargaId, i.bulan, i.tahun, i.nominal, i.date]);
+      return responseJSON({ status: "success", message: "Iuran disimpan" });
+    }
+    if (action === "ADD_KAS") {
+      var k = contents.data;
+      ss.getSheetByName("Kas").appendRow([k.id, k.date, k.type, k.category, k.note, k.amount, k.officer]);
+      return responseJSON({ status: "success", message: "Kas disimpan" });
+    }
+    return responseJSON({ status: "error", message: "Aksi tidak dikenal" });
+  } catch (err) {
+    return responseJSON({ status: "error", message: err.toString() });
+  }
+}
+
+function getSheetDataAsObjects(sheet) {
+  if (!sheet) return [];
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  var headers = data[0];
+  var rows = [];
+  for (var i = 1; i < data.length; i++) {
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) obj[headers[j]] = data[i][j];
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function responseJSON(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}</pre>
+            </div>
+
+            <div class="text-xs text-slate-600 space-y-1">
+                <p><strong>URL Aktif Saat Ini:</strong></p>
+                <input type="text" readonly value="https://script.google.com/macros/s/AKfycbxVcblzARa4B8sXcp6bgyk2M0KoxA5euqVAzhF9F5o55vWXYXPMbQjPAHiCXXoK85yx/exec" class="w-full bg-slate-100 border p-2 rounded-xl text-[10px] font-mono text-slate-700">
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex justify-end">
+                <button onclick="closeModal('modalAppsScript')" class="px-5 py-2 text-xs font-bold text-white bg-slate-800 rounded-xl">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL 6: DEPLOYMENT GUIDE MODAL -->
     <div id="modalDeployment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
@@ -238,13 +760,12 @@
                 </div>
             </div>
 
-            <!-- Steps for Backend Integration -->
             <div class="bg-sky-50 p-4 rounded-xl border border-sky-100 space-y-2 text-xs">
                 <h4 class="font-bold text-sky-900 flex items-center gap-2">
                     <i class="fa-solid fa-link text-sky-600"></i> Menghubungkan Frontend Hosting dengan Google Sheets Backend
                 </h4>
                 <p class="text-sky-800 leading-relaxed">
-                    Setiap transaksi dan data warga yang diinput dari web terdeploy akan tersimpan secara terpusat di Google Spreadsheet RT Anda. Pasang Google Apps Script Web App (pilih <i>Anyone</i> saat Deploy) lalu masukkan URL Apps Script di aplikasi untuk sinkronisasi otomatis realtime.
+                    Setiap transaksi dan data warga yang diinput dari web terdeploy akan tersimpan secara terpusat di Google Spreadsheet RT Anda. Pasang Google Apps Script Web App (pilih <i>Anyone</i> saat Deploy) lalu pastikan URL Web App sudah dipasang di baris <code class="bg-sky-100 px-1 py-0.5 rounded font-mono">GSHEET_API_URL</code>.
                 </p>
             </div>
 
@@ -254,7 +775,6 @@
         </div>
     </div>
 
-    <!-- -->
     <script>
         // CONFIG & CONSTANTS
         const DUES_RATE_HUNI = 50000;
@@ -317,12 +837,59 @@
             ]
         };
 
-        // INIT ON LOAD
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number || 0);
+        }
+
+        // INIT ON LOAD & FETCH GSHEET
         window.onload = function() {
             showLoginView();
+            fetchDataFromGSheet();
         };
 
-        // AUTHENTICATION LOGIC
+        // FETCH REALTIME DATA FROM GSHEET
+        function fetchDataFromGSheet() {
+            if (!GSHEET_API_URL || GSHEET_API_URL.indexOf('AKfycb') === -1) return;
+
+            fetch(GSHEET_API_URL)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.status === "success") {
+                        if (data.warga && data.warga.length > 0) state.wargaList = data.warga;
+                        if (data.kas && data.kas.length > 0) state.ledger = data.kas;
+                        
+                        // Parse Iuran
+                        if (data.iuran && data.iuran.length > 0) {
+                            data.iuran.forEach(item => {
+                                state.iuranRecords[item.key] = {
+                                    nominal: Number(item.nominal),
+                                    date: item.date,
+                                    method: "TUNAI",
+                                    collector: "Sistem GS"
+                                };
+                            });
+                        }
+                        
+                        document.getElementById('syncText').innerText = "GSheet Synced";
+                    }
+                })
+                .catch(err => {
+                    console.warn("GSheet sync fallback to local demo data.", err);
+                    document.getElementById('syncText').innerText = "Demo Offline Mode";
+                });
+        }
+
+        function postToGSheet(action, payload) {
+            if (!GSHEET_API_URL || GSHEET_API_URL.indexOf('AKfycb') === -1) return;
+
+            fetch(GSHEET_API_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: action, data: payload })
+            }).catch(e => console.warn("POST error", e));
+        }
+
         function handleLogin(e) {
             e.preventDefault();
             var username = document.getElementById('loginUsername').value.trim().toLowerCase();
@@ -390,7 +957,6 @@
             document.getElementById('modalDeployment').classList.remove('hidden');
         }
 
-        // ROLE SWITCHER LOGIC OVERRIDE WITH AUTH SESSION
         function switchRole(role) {
             if (!state.isLoggedIn && role !== 'login') {
                 showLoginView();
@@ -399,20 +965,18 @@
 
             state.activeRole = role;
             
-            // Hide all views
             var roles = ['login', 'warga', 'admin', 'bendahara_gang', 'bendahara_umum'];
             for (var i = 0; i < roles.length; i++) {
                 var el = document.getElementById('view-' + roles[i]);
                 if (el) el.classList.add('hidden');
             }
 
-            // Show target view
             var activeEl = document.getElementById('view-' + role);
             if (activeEl) activeEl.classList.remove('hidden');
 
-            // Header User Updates
             document.getElementById('userInfoHeader').classList.remove('hidden');
             document.getElementById('roleSelectorContainer').classList.remove('hidden');
+            document.getElementById('roleSelector').value = role;
             document.getElementById('userNameHeader').innerText = state.currentUser ? state.currentUser.name : 'Pengguna';
             document.getElementById('userAvatar').innerText = state.currentUser ? state.currentUser.name.charAt(0) : 'U';
 
@@ -463,51 +1027,6 @@
             }, 4000);
         }
 
-        // ROLE SWITCHER LOGIC
-        function switchRole(role) {
-            state.activeRole = role;
-            
-            // Hide all views
-            var roles = ['warga', 'admin', 'bendahara_gang', 'bendahara_umum'];
-            for (var i = 0; i < roles.length; i++) {
-                var el = document.getElementById('view-' + roles[i]);
-                if (el) el.classList.add('hidden');
-            }
-
-            // Show target view
-            var activeEl = document.getElementById('view-' + role);
-            if (activeEl) activeEl.classList.remove('hidden');
-
-            // Update Header Badges
-            var badge = document.getElementById('roleBadge');
-            var desc = document.getElementById('roleDescription');
-
-            if (role === 'warga') {
-                badge.className = 'bg-sky-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
-                badge.innerText = 'Warga / Penghuni';
-                desc.innerText = 'Cek besaran tagihan, riwayat lunas, dan tunggakan iuran rumah Anda.';
-                checkWargaStatus();
-            } else if (role === 'admin') {
-                badge.className = 'bg-purple-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
-                badge.innerText = 'Admin RT';
-                desc.innerText = 'Kelola database warga, penambahan rumah baru, dan status huni (Huni / Tidak Huni).';
-                renderAdminTable();
-            } else if (role === 'bendahara_gang') {
-                badge.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
-                badge.innerText = 'Bendahara Gang';
-                desc.innerText = 'Koleksi iuran tunai di gang Anda dan rekap laporan untuk disetorkan ke Bendahara Umum.';
-                renderBendaharaGang();
-            } else if (role === 'bendahara_umum') {
-                badge.className = 'bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
-                badge.innerText = 'Bendahara Umum';
-                desc.innerText = 'Kelola Kas Utama RT, pengeluaran operasional komplek, dan mutasi iuran dari seluruh gang.';
-                renderBendaharaUmum();
-            }
-        }
-
-        // ====================================================================
-        // WARGA ROLE LOGIC
-        // ====================================================================
         function setWargaSearch(id) {
             document.getElementById('wargaSearchId').value = id;
             checkWargaStatus();
@@ -517,12 +1036,8 @@
             var searchInput = document.getElementById('wargaSearchId');
             if (!searchInput) return;
             var searchVal = searchInput.value.trim().toUpperCase();
-            if (!searchVal) {
-                showToast('Masukkan ID Rumah atau No Jalan terlebih dahulu', 'error');
-                return;
-            }
+            if (!searchVal) return;
 
-            // Find Warga by ID or No Rumah
             var warga = state.wargaList.find(function(w) {
                 return w.id.toUpperCase() === searchVal || w.noRumah === searchVal;
             });
@@ -536,26 +1051,22 @@
 
             if (resultSection) resultSection.classList.remove('hidden');
 
-            // Set Resident Basic Details
             document.getElementById('residenceIdBadge').innerText = warga.id;
             document.getElementById('residenceOwnerName').innerText = warga.nama;
-            document.getElementById('residenceAddress').innerHTML = '<i class="fa-solid fa-location-dot text-rose-500 mr-1.5"></i> ' + warga.gang + ' No. ' + warga.noRumah;
+            document.getElementById('residenceAddress').innerHTML = '<i class="fa-solid fa-location-dot text-rose-400 mr-1.5"></i> ' + warga.gang + ' No. ' + warga.noRumah;
 
             var isHuni = warga.statusHuni === 'HUNI';
             var statusBadge = document.getElementById('residenceStatusBadge');
             statusBadge.className = isHuni 
-                ? 'bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200'
-                : 'bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-200';
-            statusBadge.innerHTML = isHuni 
-                ? '<i class="fa-solid fa-house-chimney-user mr-1"></i> STATUS: HUNI'
-                : '<i class="fa-solid fa-house-circle-xmark mr-1"></i> STATUS: TIDAK HUNI';
+                ? 'bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30'
+                : 'bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30';
+            statusBadge.innerHTML = isHuni ? '<i class="fa-solid fa-house-chimney-user mr-1"></i> STATUS: HUNI' : '<i class="fa-solid fa-house-circle-xmark mr-1"></i> STATUS: TIDAK HUNI';
 
             var monthlyTariff = isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
             document.getElementById('residenceTariff').innerText = 'Nominal Iuran: ' + formatRupiah(monthlyTariff) + ' / Bulan';
 
-            // Calculate Paid vs Unpaid Grid
             var currentYear = 2026;
-            var currentMonthIndex = 7; // August = Index 7
+            var currentMonthIndex = 7; // August
             var totalPaid = 0;
             var totalUnpaid = 0;
 
@@ -568,7 +1079,7 @@
                 var isPastOrCurrent = index <= currentMonthIndex;
 
                 var cardBg = 'bg-slate-50 border-slate-200 text-slate-400';
-                var statusTag = '<span class="text-[10px] text-slate-400 font-medium">Belum Jatuh Tempo</span>';
+                var statusTag = '<span class="text-[10px] text-slate-400 font-medium">Belum</span>';
 
                 if (isPaid) {
                     totalPaid += state.iuranRecords[key].nominal;
@@ -597,9 +1108,6 @@
             document.getElementById('residenceUnpaidTotal').innerText = formatRupiah(totalUnpaid);
         }
 
-        // ====================================================================
-        // ADMIN ROLE LOGIC
-        // ====================================================================
         function renderAdminTable() {
             var search = document.getElementById('adminFilterSearch').value.toLowerCase();
             var gangFilter = document.getElementById('adminFilterGang').value;
@@ -612,10 +1120,9 @@
                 return matchSearch && matchGang && matchStatus;
             });
 
-            // Update Counts
             document.getElementById('adminTotalHouses').innerText = state.wargaList.length + ' Rumah';
-            document.getElementById('adminTotalHuni').innerText = state.wargaList.filter(function(w) { return w.statusHuni === 'HUNI'; }).length + ' Rumah';
-            document.getElementById('adminTotalTidakHuni').innerText = state.wargaList.filter(function(w) { return w.statusHuni === 'TIDAK_HUNI'; }).length + ' Rumah';
+            document.getElementById('adminTotalHuni').innerText = state.wargaList.filter(w => w.statusHuni === 'HUNI').length + ' Rumah';
+            document.getElementById('adminTotalTidakHuni').innerText = state.wargaList.filter(w => w.statusHuni === 'TIDAK_HUNI').length + ' Rumah';
 
             var tbody = document.getElementById('adminWargaTableBody');
             tbody.innerHTML = '';
@@ -629,17 +1136,17 @@
                 var isHuni = w.statusHuni === 'HUNI';
                 tbody.innerHTML += 
                     '<tr class="hover:bg-slate-50 transition-all">' +
-                        '<td class="p-4 font-mono font-bold text-sky-700">' + w.id + '</td>' +
-                        '<td class="p-4 font-semibold text-slate-800">' + w.nama + '</td>' +
-                        '<td class="p-4">' + w.gang + '</td>' +
-                        '<td class="p-4 text-xs font-mono">' + (w.hp || '-') + '</td>' +
-                        '<td class="p-4">' +
+                        '<td class="p-3 font-mono font-bold text-sky-700">' + w.id + '</td>' +
+                        '<td class="p-3 font-semibold text-slate-800">' + w.nama + '</td>' +
+                        '<td class="p-3">' + w.gang + '</td>' +
+                        '<td class="p-3 text-xs font-mono">' + (w.hp || '-') + '</td>' +
+                        '<td class="p-3">' +
                             '<span class="' + (isHuni ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700') + ' text-[11px] font-bold px-2.5 py-1 rounded-full">' +
                                 (isHuni ? 'HUNI' : 'TIDAK HUNI') +
                             '</span>' +
                         '</td>' +
-                        '<td class="p-4 font-semibold text-slate-700">' + formatRupiah(isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI) + '</td>' +
-                        '<td class="p-4 text-center space-x-1">' +
+                        '<td class="p-3 font-semibold text-slate-700">' + formatRupiah(isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI) + '</td>' +
+                        '<td class="p-3 text-center space-x-1">' +
                             '<button onclick="editWarga(\'' + w.id + '\')" class="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-sky-50"><i class="fa-solid fa-pen-to-square"></i></button>' +
                             '<button onclick="confirmDeleteWarga(\'' + w.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50"><i class="fa-solid fa-trash"></i></button>' +
                         '</td>' +
@@ -680,18 +1187,21 @@
             var paddedNo = ('0' + noRumah).slice(-2);
             var primaryId = gangCode + '-' + paddedNo;
 
+            var newWargaObj = { id: primaryId, gang: gang, noRumah: noRumah, nama: nama, hp: hp, statusHuni: statusHuni, rate: statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI };
+
             if (originalId) {
-                var idx = state.wargaList.findIndex(function(w) { return w.id === originalId; });
+                var idx = state.wargaList.findIndex(w => w.id === originalId);
                 if (idx !== -1) {
-                    state.wargaList[idx] = { id: primaryId, gang: gang, noRumah: noRumah, nama: nama, hp: hp, statusHuni: statusHuni, rate: statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI };
+                    state.wargaList[idx] = newWargaObj;
                     showToast('Data warga ' + nama + ' berhasil diperbarui.');
                 }
             } else {
-                if (state.wargaList.some(function(w) { return w.id === primaryId; })) {
+                if (state.wargaList.some(w => w.id === primaryId)) {
                     showToast('Rumah dengan ID ' + primaryId + ' sudah ada!', 'error');
                     return;
                 }
-                state.wargaList.push({ id: primaryId, gang: gang, noRumah: noRumah, nama: nama, hp: hp, statusHuni: statusHuni, rate: statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI });
+                state.wargaList.push(newWargaObj);
+                postToGSheet("ADD_WARGA", newWargaObj);
                 showToast('Warga baru ' + nama + ' (' + primaryId + ') berhasil ditambahkan!');
             }
 
@@ -700,7 +1210,7 @@
         }
 
         function editWarga(id) {
-            var w = state.wargaList.find(function(item) { return item.id === id; });
+            var w = state.wargaList.find(item => item.id === id);
             if (!w) return;
 
             document.getElementById('modalWargaTitle').innerText = 'Ubah Data Warga';
@@ -717,25 +1227,20 @@
         function confirmDeleteWarga(id) {
             state.pendingDeleteId = id;
             document.getElementById('confirmMessageText').innerText = 'Apakah Anda yakin ingin menghapus data warga dengan ID ' + id + '?';
-            document.getElementById('confirmExecuteBtn').onclick = function() {
-                executeDeleteWarga();
-            };
+            document.getElementById('confirmExecuteBtn').onclick = executeDeleteWarga;
             document.getElementById('modalConfirm').classList.remove('hidden');
         }
 
         function executeDeleteWarga() {
             var id = state.pendingDeleteId;
             if (id) {
-                state.wargaList = state.wargaList.filter(function(w) { return w.id !== id; });
+                state.wargaList = state.wargaList.filter(w => w.id !== id);
                 showToast('Data ' + id + ' telah dihapus.');
                 renderAdminTable();
             }
             closeModal('modalConfirm');
         }
 
-        // ====================================================================
-        // BENDAHARA GANG LOGIC
-        // ====================================================================
         function switchGangTreasurer(gang) {
             state.activeGang = gang;
             renderBendaharaGang();
@@ -745,7 +1250,7 @@
             var gang = state.activeGang;
             document.getElementById('activeGangNameLabel').innerText = gang;
 
-            var gangWarga = state.wargaList.filter(function(w) { return w.gang === gang; });
+            var gangWarga = state.wargaList.filter(w => w.gang === gang);
             var currentMonth = "Agustus";
             var currentYear = 2026;
 
@@ -816,7 +1321,7 @@
 
         function onIuranWargaSelected() {
             var wargaId = document.getElementById('iuranFormWargaId').value;
-            var w = state.wargaList.find(function(item) { return item.id === wargaId; });
+            var w = state.wargaList.find(item => item.id === wargaId);
             if (!w) return;
 
             var isHuni = w.statusHuni === 'HUNI';
@@ -838,17 +1343,29 @@
             var key = wargaId + '_' + bulan + '_' + tahun;
             var collector = state.activeRole === 'bendahara_gang' ? 'Bendahara ' + state.activeGang : 'Bendahara Umum';
 
+            var payload = {
+                key: key,
+                wargaId: wargaId,
+                bulan: bulan,
+                tahun: tahun,
+                nominal: nominal,
+                date: new Date().toISOString().split('T')[0]
+            };
+
             state.iuranRecords[key] = {
                 nominal: nominal,
-                date: new Date().toISOString().split('T')[0],
+                date: payload.date,
                 method: metode,
                 collector: collector
             };
 
-            // Automatically record in General Ledger if paid
+            // Post to GSheet
+            postToGSheet("RECORD_IURAN", payload);
+
+            // Record into General Ledger
             state.ledger.unshift({
                 id: Date.now(),
-                date: new Date().toISOString().split('T')[0],
+                date: payload.date,
                 type: 'PEMASUKAN',
                 category: 'Iuran Warga (' + wargaId + ')',
                 note: 'Iuran Bulan ' + bulan + ' ' + tahun + ' - ' + wargaId + ' via ' + metode,
@@ -863,16 +1380,13 @@
             if (state.activeRole === 'bendahara_umum') renderBendaharaUmum();
         }
 
-        // ====================================================================
-        // BENDAHARA UMUM LOGIC
-        // ====================================================================
         function renderBendaharaUmum() {
             var totalIncome = 0;
             var totalExpense = 0;
 
             state.ledger.forEach(function(item) {
-                if (item.type === 'PEMASUKAN') totalIncome += item.amount;
-                if (item.type === 'PENGELUARAN') totalExpense += item.amount;
+                if (item.type === 'PEMASUKAN') totalIncome += Number(item.amount);
+                if (item.type === 'PENGELUARAN') totalExpense += Number(item.amount);
             });
 
             var currentBalance = totalIncome - totalExpense;
@@ -889,7 +1403,7 @@
             var tbody = document.getElementById('ledgerTableBody');
             tbody.innerHTML = '';
 
-            var filtered = state.ledger.filter(function(item) { return filter === 'ALL' || item.type === filter; });
+            var filtered = state.ledger.filter(item => filter === 'ALL' || item.type === filter);
 
             if (filtered.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-xs text-slate-400">Belum ada catatan mutasi kas.</td></tr>';
@@ -900,18 +1414,18 @@
                 var isIncome = item.type === 'PEMASUKAN';
                 tbody.innerHTML += 
                     '<tr class="hover:bg-slate-50">' +
-                        '<td class="p-4 font-mono text-xs text-slate-500">' + item.date + '</td>' +
-                        '<td class="p-4">' +
+                        '<td class="p-3 font-mono text-xs text-slate-500">' + item.date + '</td>' +
+                        '<td class="p-3">' +
                             '<span class="' + (isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700') + ' text-[10px] font-bold px-2 py-0.5 rounded-full">' +
                                 (isIncome ? 'MASUK' : 'KELUAR') +
                             '</span>' +
                         '</td>' +
-                        '<td class="p-4 font-semibold text-slate-800">' + item.category + '</td>' +
-                        '<td class="p-4 text-xs text-slate-500">' + item.note + '</td>' +
-                        '<td class="p-4 font-bold ' + (isIncome ? 'text-emerald-600' : 'text-rose-600') + '">' +
+                        '<td class="p-3 font-semibold text-slate-800">' + item.category + '</td>' +
+                        '<td class="p-3 text-xs text-slate-500">' + item.note + '</td>' +
+                        '<td class="p-3 font-bold ' + (isIncome ? 'text-emerald-600' : 'text-rose-600') + '">' +
                             (isIncome ? '+' : '-') + ' ' + formatRupiah(item.amount) +
                         '</td>' +
-                        '<td class="p-4 text-xs font-medium text-slate-600">' + item.officer + '</td>' +
+                        '<td class="p-3 text-xs font-medium text-slate-600">' + item.officer + '</td>' +
                     '</tr>';
             });
         }
@@ -932,7 +1446,7 @@
                 ? ['Setoran Bendahara Gang 1', 'Setoran Bendahara Gang 2', 'Setoran Bendahara Gang 3', 'Donasi Warga', 'Lain-lain']
                 : ['Honor Keamanan', 'Kebersihan & Sampah', 'Perbaikan Lampu Jalan', 'Acara RT / 17an', 'Lain-lain'];
 
-            options.forEach(function(opt) {
+            options.forEach(opt => {
                 kategoriSelect.innerHTML += '<option value="' + opt + '">' + opt + '</option>';
             });
 
@@ -948,7 +1462,7 @@
             var nominal = parseInt(document.getElementById('transFormNominal').value, 10);
             var note = document.getElementById('transFormKet').value;
 
-            state.ledger.unshift({
+            var newTransObj = {
                 id: Date.now(),
                 date: new Date().toISOString().split('T')[0],
                 type: type,
@@ -956,14 +1470,16 @@
                 note: note,
                 amount: nominal,
                 officer: 'Bendahara Umum'
-            });
+            };
+
+            state.ledger.unshift(newTransObj);
+            postToGSheet("ADD_KAS", newTransObj);
 
             showToast('Transaksi ' + type.toLowerCase() + ' sebesar ' + formatRupiah(nominal) + ' berhasil disimpan!');
             closeModal('modalTrans');
             renderBendaharaUmum();
         }
 
-        // EXPORT & MODAL HELPERS
         function closeModal(id) {
             var modal = document.getElementById(id);
             if (modal) modal.classList.add('hidden');
@@ -977,13 +1493,10 @@
         function copyAppsScriptCode() {
             var code = document.getElementById('appsScriptCode').innerText;
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(code).then(function() {
-                    showToast('Kode Google Apps Script berhasil disalin!');
-                }).catch(function() {
-                    showToast('Gagal menyalin kode, salin secara manual.', 'error');
-                });
+                navigator.clipboard.writeText(code).then(() => showToast('Kode Google Apps Script berhasil disalin!'))
+                    .catch(() => showToast('Gagal menyalin kode, silakan salin manual.', 'error'));
             } else {
-                showToast('Fitur salin otomatis tidak didukung di browser ini, silakan salin manual.', 'error');
+                showToast('Salin manual kode yang ada di kotak.', 'error');
             }
         }
 
@@ -999,7 +1512,7 @@
             a.setAttribute('href', url);
             a.setAttribute('download', 'Laporan_Kas_RT_' + new Date().toISOString().split('T')[0] + '.csv');
             a.click();
-            showToast('Laporan Kas RT berhasil diunduh sebagai CSV!');
+            showToast('Laporan Kas RT berhasil diunduh sebagai file CSV!');
         }
     </script>
 </body>
