@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SI-KAS RT 05 - Cluster Tabebuya</title>
+    <title>SI-KAS RT 04 - Cluster Tabebuya</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -58,7 +58,9 @@
         border-radius: 4px;
     }
 </style>
-<!-- HEADER NAVIGATION -->
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
 <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
@@ -104,7 +106,6 @@
     </div>
 </header>
 
-<!-- Sub-header notice -->
 <div class="bg-sky-50 border-b border-sky-100 py-2 px-4 sm:px-8">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-sky-800 gap-2">
         <div class="flex items-center space-x-2">
@@ -130,7 +131,6 @@
     <!-- Toast Notifications -->
     <div id="toastContainer" class="fixed top-20 right-5 z-50 flex flex-col gap-2"></div>
 
-    <!-- VIEW 1: LOGIN PAGE -->
     <section id="view-login" class="max-w-md mx-auto py-8">
         <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-200 space-y-6">
             <div class="text-center space-y-2">
@@ -146,7 +146,7 @@
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nama Pendek / Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                        <input type="text" id="loginUsername" placeholder="Contoh: Budi / admin / bendahara1" required class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none text-xs font-semibold text-slate-800">
+                        <input type="text" id="loginUsername" placeholder="Contoh: Budi / bendahara1 / bendahara_umum" required class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none text-xs font-semibold text-slate-800">
                     </div>
                 </div>
 
@@ -165,17 +165,17 @@
 
             <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-600 space-y-1">
                 <div class="font-bold text-slate-700 flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-info text-sky-600"></i> Ketentuan Akses & Login:
+                    <i class="fa-solid fa-circle-info text-sky-600"></i> Akses Berdasarkan Role:
                 </div>
                 <ul class="list-disc pl-4 space-y-0.5 text-[10.5px]">
-                    <li><b>Login Warga:</b> Masukkan <u>Nama Pendek</u> (seperti tercantum di database warga) & password default <code class="bg-slate-200 px-1 rounded text-sky-800">123456</code>.</li>
-                    <li><b>Bendahara Gang:</b> Akses pengelolaan iuran per gang masing-masing (Tabebuya Raya, 1, 2, 3).</li>
+                    <li><b>Warga:</b> Login Nama Pendek & password default <code class="bg-slate-200 px-1 rounded text-sky-800">123456</code> (Bisa cek histori multi-tahun).</li>
+                    <li><b>Bendahara Gang 1-3 & Raya:</b> Terkunci khusus mengelola gang masing-masing.</li>
+                    <li><b>Bendahara Umum:</b> Khusus Kas Utama & Generator Laporan Rekapan WA.</li>
                 </ul>
             </div>
         </div>
     </section>
 
-    <!-- VIEW 2: WARGA PORTAL -->
     <section id="view-warga" class="hidden space-y-6">
         <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -183,7 +183,17 @@
                     <h2 class="text-xl font-bold text-slate-800">Cek Status Tagihan & Riwayat Iuran Warga</h2>
                     <p class="text-xs text-slate-500">Pencarian berdasarkan ID Rumah / Nama Rumah / Blok Gang Tabebuya.</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Year selector for historical viewing -->
+                    <div class="flex items-center gap-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                        <span class="text-[11px] font-bold text-slate-600 pl-2">Tahun:</span>
+                        <select id="wargaSelectYear" onchange="checkWargaStatus()" class="bg-white border border-slate-300 rounded-lg text-xs font-bold py-1 px-2 text-slate-800 focus:outline-none cursor-pointer">
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                        </select>
+                    </div>
+
                     <input type="text" id="wargaSearchId" placeholder="ID (TR-01 / T3-01) atau Nama..." class="px-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold uppercase focus:ring-2 focus:ring-sky-500 focus:outline-none">
                     <button onclick="checkWargaStatus()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md">
                         <i class="fa-solid fa-magnifying-glass mr-1"></i> Cari
@@ -206,12 +216,12 @@
 
                 <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex gap-6 text-center">
                     <div>
-                        <div class="text-[10px] uppercase text-sky-300 font-medium">Total Terbayar</div>
+                        <div class="text-[10px] uppercase text-sky-300 font-medium">Terbayar (<span class="activeYearDisplay">2026</span>)</div>
                         <div id="residencePaidTotal" class="text-lg font-bold text-emerald-400">Rp 0</div>
                     </div>
                     <div class="border-r border-white/20"></div>
                     <div>
-                        <div class="text-[10px] uppercase text-sky-300 font-medium">Tunggakan</div>
+                        <div class="text-[10px] uppercase text-sky-300 font-medium">Tunggakan (<span class="activeYearDisplay">2026</span>)</div>
                         <div id="residenceUnpaidTotal" class="text-lg font-bold text-rose-400">Rp 0</div>
                     </div>
                 </div>
@@ -220,7 +230,7 @@
             <!-- Monthly Status Cards Grid -->
             <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
                 <div class="flex justify-between items-center">
-                    <h4 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-calendar-days text-sky-600 mr-2"></i> Status Iuran Bulanan Tahun 2026</h4>
+                    <h4 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-calendar-days text-sky-600 mr-2"></i> Status Iuran Bulanan Tahun <span class="activeYearDisplay font-black text-sky-700">2026</span></h4>
                     <span id="residenceTariff" class="text-xs font-semibold text-slate-500">Nominal: Rp 30.000 / Bulan</span>
                 </div>
 
@@ -231,7 +241,6 @@
         </div>
     </section>
 
-    <!-- VIEW 3: ADMIN PORTAL -->
     <section id="view-admin" class="hidden space-y-6">
         <!-- Stats Row -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -314,7 +323,6 @@
         </div>
     </section>
 
-    <!-- VIEW 4: BENDAHARA GANG PORTAL -->
     <section id="view-bendahara_gang" class="hidden space-y-6">
         <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-6">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -323,9 +331,11 @@
                     <p class="text-xs text-slate-500">Pencatatan iuran tunai, laporan tunggakan warga, & penyerahan saldo tunai ke Bendahara Umum.</p>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <label class="text-xs font-bold text-slate-600">Pilih Gang:</label>
-                    <select id="gangTreasurerSelect" onchange="switchGangTreasurer(this.value)" class="px-4 py-2 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs font-bold focus:outline-none">
+                <div class="flex items-center gap-3 bg-amber-50 p-2 rounded-2xl border border-amber-200">
+                    <label class="text-xs font-bold text-amber-900 flex items-center gap-1">
+                        <i class="fa-solid fa-lock text-amber-600"></i> Gang Dikelola:
+                    </label>
+                    <select id="gangTreasurerSelect" onchange="switchGangTreasurer(this.value)" class="px-3 py-1.5 bg-white border border-amber-300 text-amber-900 rounded-xl text-xs font-bold focus:outline-none cursor-pointer">
                         <option value="Tabebuya Raya">Tabebuya Raya</option>
                         <option value="Tabebuya 1">Tabebuya 1</option>
                         <option value="Tabebuya 2">Tabebuya 2</option>
@@ -387,7 +397,7 @@
             <!-- TAB CONTENT 1: TERIMA IURAN TUNAI -->
             <div id="gangTab-terima" class="space-y-4">
                 <div class="flex justify-between items-center">
-                    <p class="text-xs text-slate-500">Pilih warga untuk mencatat pembayaran tunai atau transfer direct ke Bendahara Umum.</p>
+                    <p class="text-xs text-slate-500">Pilih warga di <strong class="activeGangNameLabel text-sky-700">Tabebuya Raya</strong> untuk mencatat pembayaran tunai/transfer.</p>
                     <button onclick="openModalCatatIuran()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-md">
                         <i class="fa-solid fa-plus mr-1"></i> Input Pembayaran Baru
                     </button>
@@ -419,7 +429,7 @@
                         Daftar warga di <strong class="activeGangNameLabel">Tabebuya Raya</strong> yang memiliki tunggakan iuran.
                     </div>
                     <button onclick="exportUnpaidReport()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl font-bold shadow-sm">
-                        <i class="fa-solid fa-download mr-1"></i> Download Rekap
+                        <i class="fa-solid fa-download mr-1"></i> Export Rekap
                     </button>
                 </div>
 
@@ -466,7 +476,6 @@
         </div>
     </section>
 
-    <!-- VIEW 5: BENDAHARA UMUM PORTAL -->
     <section id="view-bendahara_umum" class="hidden space-y-6">
         <!-- Balance Overview Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -484,6 +493,43 @@
                 <p class="text-xs text-slate-500 font-medium">Total Pengeluaran Kas</p>
                 <h3 id="generalExpenseMonth" class="text-2xl font-bold text-rose-600 mt-2">Rp 0</h3>
                 <p class="text-[10px] text-slate-400 mt-1">Operasional Satpam, Sampah, Perbaikan, Dll</p>
+            </div>
+        </div>
+
+        <!-- WHATSAPP REPORT GENERATOR FOR GROUP -->
+        <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-emerald-600 text-xl"></i> Generator Rekapan Laporan Kas ke Group WA
+                    </h3>
+                    <p class="text-xs text-slate-500">Format laporan pengeluaran & pemasukan otomatis siap kirim ke WhatsApp Group RT.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="waReportMonth" onchange="generateWAReportText()" class="px-3 py-1.5 bg-slate-50 border rounded-xl text-xs font-bold text-slate-700">
+                        <option value="Agustus" selected>Agustus</option>
+                        <option value="September">September</option>
+                        <option value="Oktober">Oktober</option>
+                        <option value="November">November</option>
+                        <option value="Desember">Desember</option>
+                        <option value="Januari">Januari</option>
+                        <option value="Februari">Februari</option>
+                        <option value="Maret">Maret</option>
+                        <option value="April">April</option>
+                        <option value="Mei">Mei</option>
+                        <option value="Juni">Juni</option>
+                        <option value="Juli">Juli</option>
+                    </select>
+                    <input type="number" id="waReportYear" value="2026" onchange="generateWAReportText()" class="w-20 px-3 py-1.5 bg-slate-50 border rounded-xl text-xs font-bold text-slate-700">
+                    <button onclick="copyWAReportToClipboard()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md flex items-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Salin Rekapan WA
+                    </button>
+                </div>
+            </div>
+
+            <div class="relative">
+                <textarea id="waReportPreview" readonly rows="7" class="w-full p-4 bg-slate-900 text-emerald-300 font-mono text-xs rounded-2xl focus:outline-none leading-relaxed border border-slate-800"></textarea>
+                <span class="absolute top-3 right-3 text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded-md font-sans">Preview Teks WA</span>
             </div>
         </div>
 
@@ -537,7 +583,6 @@
 
 </main>
 
-<!-- MODAL 1: WARGA FORM -->
 <div id="modalWarga" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
         <button onclick="closeModal('modalWarga')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
@@ -586,7 +631,6 @@
     </div>
 </div>
 
-<!-- MODAL 2: IURAN FORM -->
 <div id="modalIuran" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
         <button onclick="closeModal('modalIuran')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
@@ -594,7 +638,7 @@
         
         <form onsubmit="saveIuran(event)" class="space-y-3 text-xs">
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Pilih Rumah / Warga</label>
+                <label class="block font-bold text-slate-700 mb-1">Pilih Rumah / Warga (<span class="activeGangNameLabel">Gang</span>)</label>
                 <select id="iuranFormWargaId" onchange="onIuranWargaSelected()" class="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold">
                     <!-- Populated dynamically -->
                 </select>
@@ -612,7 +656,7 @@
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Bulan</label>
-                    <select id="iuranFormBulan" class="w-full p-2.5 bg-slate-50 border rounded-xl">
+                    <select id="iuranFormBulan" class="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold">
                         <option value="Agustus">Agustus</option>
                         <option value="September">September</option>
                         <option value="Oktober">Oktober</option>
@@ -652,7 +696,6 @@
     </div>
 </div>
 
-<!-- MODAL 3: TRANSACTION (KAS) FORM -->
 <div id="modalTrans" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
         <button onclick="closeModal('modalTrans')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
@@ -682,7 +725,6 @@
     </div>
 </div>
 
-<!-- MODAL 4: CONFIRMATION MODAL -->
 <div id="modalConfirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
         <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
@@ -697,15 +739,14 @@
     </div>
 </div>
 
-<!-- MODAL 5: GOOGLE APPS SCRIPT GUIDE -->
 <div id="modalAppsScript" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 relative max-h-[85vh] overflow-y-auto">
         <button onclick="closeModal('modalAppsScript')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
         <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-code text-sky-600"></i> Setup Google Apps Script (Multi-Role & Auto-Sheet)
+            <i class="fa-solid fa-code text-sky-600"></i> Setup Google Apps Script
         </h3>
         <p class="text-xs text-slate-600 leading-relaxed">
-            Salin kode Google Apps Script terbaru di bawah ini. Kode ini telah disesuaikan untuk mendukung <b>Tabebuya Raya, Tabebuya 1, Tabebuya 2, dan Tabebuya 3</b>, serta pemisahan transfer langsung ke Bendahara Umum.
+            Salin kode Google Apps Script terbaru di bawah ini ke Script Editor Google Spreadsheet Anda.
         </p>
 
         <div class="bg-slate-900 text-slate-100 p-3 rounded-xl relative">
@@ -777,7 +818,6 @@ function doPost(e) {
 
     if (action === "RECORD_IURAN") {
       var sheet = getOrCreateSheet(ss, "Iuran", ["key", "wargaId", "bulan", "tahun", "nominal", "date", "handedOver", "method", "collector"]);
-      // Jika pembayaran TRANSFER langsung ke Bendahara Umum, handedOver otomatis true
       var isDirectTransfer = (data.method === "TRANSFER");
       var handedOverValue = isDirectTransfer ? true : (data.handedOver || false);
 
@@ -802,7 +842,7 @@ function doPost(e) {
         var rows = sheet.getDataRange().getValues();
         for (var i = 1; i < rows.length; i++) {
           if (data.keys && data.keys.indexOf(String(rows[i][0])) !== -1) {
-            sheet.getRange(i + 1, 7).setValue(true); // Set handedOver = true
+            sheet.getRange(i + 1, 7).setValue(true);
           }
         }
       }
@@ -858,13 +898,13 @@ function getSheetDataAsObjects(sheet) {
 function responseJSON(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }</pre>
-            <div class="pt-2 border-t border-slate-100 flex justify-end">
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex justify-end">
             <button onclick="closeModal('modalAppsScript')" class="px-5 py-2 text-xs font-bold text-white bg-slate-800 rounded-xl">Tutup</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL 6: DEPLOYMENT GUIDE MODAL -->
 <div id="modalDeployment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
         <button onclick="closeModal('modalDeployment')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
@@ -893,7 +933,6 @@ function responseJSON(data) {
     </div>
 </div>
 
-<!-- MAIN JAVASCRIPT APP LOGIC -->
 <script>
     // System Constants & Configs
     const DUES_RATE_HUNI = 30000;
@@ -932,7 +971,6 @@ function responseJSON(data) {
         fetchDataFromGSheet();
     };
 
-    // REALTIME DATA SYNC FROM GSHEET
     function fetchDataFromGSheet() {
         var syncText = document.getElementById('syncText');
         if (syncText) syncText.innerText = "Mengambil data GS...";
@@ -1005,11 +1043,11 @@ function responseJSON(data) {
 
         // 1. ADMIN OVERRIDE LOGIN
         if (queryLower === 'admin' && (password === '123456' || passwordMD5 === 'e10adc3949ba59abbe56e057f20f883e')) {
-            completeLogin({ username: 'admin', name: 'Admin RT Tabebuya', role: 'admin', linkedId: '' });
+            completeLogin({ username: 'admin', name: 'Admin RT Tabebuya', role: 'admin', linkedGang: '' });
             return;
         }
 
-        // 2. CHECK PEGAWAI / STAFF SHEET
+        // 2. CHECK PEGAWAI / STAFF SHEET (Bendahara 1, 2, 3, Raya, Bendahara Umum)
         var foundPegawai = state.pegawaiList.find(p => 
             (p.username && String(p.username).toLowerCase() === queryLower) ||
             (p.nama && String(p.nama).toLowerCase().includes(queryLower)) ||
@@ -1066,7 +1104,9 @@ function responseJSON(data) {
 
         showToast('Selamat datang, ' + user.name + '!');
         
-        if (user.linkedGang) state.activeGang = user.linkedGang;
+        if (user.linkedGang) {
+            state.activeGang = user.linkedGang;
+        }
         
         updateRoleSelectorOptions(user.role);
 
@@ -1195,18 +1235,26 @@ function responseJSON(data) {
         } else if (role === 'bendahara_gang') {
             badge.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
             badge.innerText = 'Bendahara Gang';
-            desc.innerText = 'Penerimaan iuran tunai, laporan tunggakan warga, & penyerahan kas ke Bendahara Umum.';
             
             var gangSel = document.getElementById('gangTreasurerSelect');
-            if (gangSel && state.currentUser && state.currentUser.linkedGang) {
-                gangSel.value = state.currentUser.linkedGang;
+            if (state.currentUser && state.currentUser.linkedGang) {
+                // Lock gang selection to assigned gang for Bendahara Gang!
                 state.activeGang = state.currentUser.linkedGang;
+                if (gangSel) {
+                    gangSel.value = state.currentUser.linkedGang;
+                    gangSel.disabled = true; // Lock dropdown!
+                    gangSel.title = "Anda terkunci di " + state.currentUser.linkedGang;
+                }
+                desc.innerText = 'Kelola iuran & tunggakan khusus area ' + state.currentUser.linkedGang + '.';
+            } else {
+                if (gangSel) gangSel.disabled = false;
+                desc.innerText = 'Penerimaan iuran tunai, laporan tunggakan warga, & penyerahan kas ke Bendahara Umum.';
             }
             renderBendaharaGang();
         } else if (role === 'bendahara_umum') {
             badge.className = 'bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
             badge.innerText = 'Bendahara Umum';
-            desc.innerText = 'Kelola Saldo Kas Utama RT, pengeluaran operasional komplek, & mutasi iuran.';
+            desc.innerText = 'Kelola Kas Utama RT & buat rekapan laporan keuangan bulanan ke WA Group.';
             renderBendaharaUmum();
         }
 
@@ -1231,6 +1279,11 @@ function responseJSON(data) {
         if (!searchInput) return;
         var searchVal = searchInput.value.trim().toLowerCase();
         if (!searchVal) return;
+
+        var selectedYear = Number(document.getElementById('wargaSelectYear').value || 2026);
+        
+        // Update year labels
+        document.querySelectorAll('.activeYearDisplay').forEach(el => el.innerText = selectedYear);
 
         var warga = state.wargaList.find(function(w) {
             var wId = String(w.id || '').toLowerCase();
@@ -1263,8 +1316,9 @@ function responseJSON(data) {
         var monthlyTariff = isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
         document.getElementById('residenceTariff').innerText = 'Nominal Iuran: ' + formatRupiah(monthlyTariff) + ' / Bulan';
 
-        var currentYear = 2026;
-        var currentMonthIndex = 7; // August
+        // Calculation based on selected year
+        var realCurrentYear = 2026;
+        var realCurrentMonthIndex = 7; // August
         var totalPaid = 0;
         var totalUnpaid = 0;
 
@@ -1272,9 +1326,18 @@ function responseJSON(data) {
         gridContainer.innerHTML = '';
 
         MONTHS.forEach(function(month, index) {
-            var key = warga.id + '_' + month + '_' + currentYear;
+            var key = warga.id + '_' + month + '_' + selectedYear;
             var isPaid = !!state.iuranRecords[key];
-            var isPastOrCurrent = index <= currentMonthIndex;
+            
+            // Determine if the month counts as past/current for arrears calculation
+            var isPastOrCurrent = false;
+            if (selectedYear < realCurrentYear) {
+                isPastOrCurrent = true; // All 12 months in past years
+            } else if (selectedYear === realCurrentYear) {
+                isPastOrCurrent = index <= realCurrentMonthIndex; // Months up to August in 2026
+            } else {
+                isPastOrCurrent = false; // Future years
+            }
 
             var cardBg = 'bg-slate-50 border-slate-200 text-slate-400';
             var statusTag = '<span class="text-[10px] text-slate-400 font-medium">Belum</span>';
@@ -1284,7 +1347,7 @@ function responseJSON(data) {
                 totalPaid += record.nominal;
                 cardBg = 'bg-emerald-50 border-emerald-200 text-emerald-800';
                 var isTransfer = record.method === "TRANSFER";
-                statusTag = `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full" title="${isTransfer ? 'Transfer Bendahara Umum' : 'Setor Tunai Gang'}"><i class="fa-solid fa-check mr-1"></i>LUNAS${isTransfer ? ' (TRF)' : ''}</span>`;
+                statusTag = `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full" title="${isTransfer ? 'Transfer Direct Bendahara Umum' : 'Setor Tunai Gang'}"><i class="fa-solid fa-check mr-1"></i>LUNAS${isTransfer ? ' (TRF)' : ''}</span>`;
             } else if (isPastOrCurrent) {
                 totalUnpaid += monthlyTariff;
                 cardBg = 'bg-rose-50 border-rose-200 text-rose-800';
@@ -1299,7 +1362,7 @@ function responseJSON(data) {
                     '</div>' +
                     '<div class="text-sm font-extrabold">' + formatRupiah(monthlyTariff) + '</div>' +
                     '<div class="text-[10px] text-slate-400">' +
-                        (isPaid ? '<i class="fa-solid fa-calendar text-emerald-500 mr-1"></i>' + state.iuranRecords[key].date : 'Tagihan RT') +
+                        (isPaid ? '<i class="fa-solid fa-calendar text-emerald-500 mr-1"></i>' + state.iuranRecords[key].date : 'Tahun ' + selectedYear) +
                     '</div>' +
                 '</div>';
         });
@@ -1464,7 +1527,11 @@ function responseJSON(data) {
     }
 
     function switchGangTreasurer(gang) {
-        state.activeGang = gang;
+        if (state.currentUser && state.currentUser.role === 'bendahara_gang' && state.currentUser.linkedGang) {
+            state.activeGang = state.currentUser.linkedGang;
+        } else {
+            state.activeGang = gang;
+        }
         renderBendaharaGang();
     }
 
@@ -1499,9 +1566,6 @@ function responseJSON(data) {
         var paidCount = 0;
         var unpaidCount = 0;
 
-        // Logika Pembayaran:
-        // Jika TUNAI: masuk ke saldo terkumpul tunai gang dan perlu diserahkan (handedOver = false).
-        // Jika TRANSFER DIRECT (Ke Bendahara Umum): TIDAK dihitung di saldo tunai pegangan Bendahara Gang.
         Object.keys(state.iuranRecords).forEach(key => {
             var record = state.iuranRecords[key];
             var w = state.wargaList.find(item => item.id === record.wargaId);
@@ -1580,7 +1644,7 @@ function responseJSON(data) {
             var isHuni = w.statusHuni === 'HUNI';
             var monthlyTariff = isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
             var totalArrears = 0;
-            var currentMonthIndex = 7; // August
+            var currentMonthIndex = 7; // August 2026
 
             MONTHS.forEach((m, idx) => {
                 if (idx <= currentMonthIndex) {
@@ -1634,7 +1698,7 @@ function responseJSON(data) {
             historyRecords.forEach(r => {
                 var statusHandoverText = "";
                 if (r.method === "TRANSFER") {
-                    statusHandoverText = '<span class="bg-sky-100 text-sky-800 font-bold px-2 py-0.5 rounded text-[10px]"><i class="fa-solid fa-building-columns mr-1"></i>Lunas Trf ke Bendahara Umum (Tidak Diisi Tunai Gang)</span>';
+                    statusHandoverText = '<span class="bg-sky-100 text-sky-800 font-bold px-2 py-0.5 rounded text-[10px]"><i class="fa-solid fa-building-columns mr-1"></i>Lunas Trf ke Bendahara Umum</span>';
                 } else if (r.handedOver) {
                     statusHandoverText = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]"><i class="fa-solid fa-check mr-1"></i>Diserahkan ke Bendahara Umum</span>';
                 } else {
@@ -1653,6 +1717,95 @@ function responseJSON(data) {
                 `;
             });
         }
+    }
+
+    function openModalCatatIuran(wargaIdDefault) {
+        var gang = state.activeGang;
+        var gangWarga = state.wargaList.filter(w => w.gang === gang);
+
+        var selectEl = document.getElementById('iuranFormWargaId');
+        selectEl.innerHTML = '';
+
+        if (gangWarga.length === 0) {
+            selectEl.innerHTML = '<option value="">-- Tidak ada warga di gang ini --</option>';
+        } else {
+            gangWarga.forEach(w => {
+                selectEl.innerHTML += `<option value="${w.id}">${w.id} - ${w.nama}</option>`;
+            });
+        }
+
+        if (wargaIdDefault) selectEl.value = wargaIdDefault;
+
+        onIuranWargaSelected();
+        document.getElementById('modalIuran').classList.remove('hidden');
+    }
+
+    function quickPayIuran(wargaId) {
+        openModalCatatIuran(wargaId);
+    }
+
+    function onIuranWargaSelected() {
+        var wId = document.getElementById('iuranFormWargaId').value;
+        var w = state.wargaList.find(item => item.id === wId);
+        if (w) {
+            var isHuni = w.statusHuni === 'HUNI';
+            var rate = isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
+            document.getElementById('iuranWargaStatusInfo').innerText = isHuni ? 'Dihuni (Full)' : 'Tidak Dihuni (Setengah)';
+            document.getElementById('iuranWargaTariffInfo').innerText = formatRupiah(rate);
+            document.getElementById('iuranFormNominal').value = rate;
+        }
+    }
+
+    function saveIuran(e) {
+        e.preventDefault();
+        var wargaId = document.getElementById('iuranFormWargaId').value;
+        var bulan = document.getElementById('iuranFormBulan').value;
+        var tahun = document.getElementById('iuranFormTahun').value;
+        var nominal = Number(document.getElementById('iuranFormNominal').value || 0);
+        var metode = document.getElementById('iuranFormMetode').value;
+
+        if (!wargaId) {
+            showToast('Pilih warga terlebih dahulu.', 'error');
+            return;
+        }
+
+        var key = wargaId + '_' + bulan + '_' + tahun;
+        var isDirectTransfer = (metode === "TRANSFER");
+
+        var recordObj = {
+            key: key,
+            wargaId: wargaId,
+            bulan: bulan,
+            tahun: tahun,
+            nominal: nominal,
+            date: new Date().toISOString().split('T')[0],
+            method: metode,
+            collector: state.currentUser ? state.currentUser.name : 'Bendahara Gang',
+            handedOver: isDirectTransfer
+        };
+
+        state.iuranRecords[key] = recordObj;
+        postToGSheet("RECORD_IURAN", recordObj);
+
+        // Jika Transfer Direct, tambahkan otomatis catatan transaksi di Kas Utama
+        if (isDirectTransfer) {
+            var newKasItem = {
+                id: Date.now(),
+                date: recordObj.date,
+                type: 'PEMASUKAN',
+                category: 'Iuran Direct Transfer',
+                note: `Iuran Direct Transfer ${wargaId} (${bulan} ${tahun})`,
+                amount: nominal,
+                officer: recordObj.collector
+            };
+            state.ledger.unshift(newKasItem);
+            postToGSheet("ADD_KAS", newKasItem);
+        }
+
+        showToast(`Iuran ${wargaId} (${bulan} ${tahun}) sebesar ${formatRupiah(nominal)} berhasil dicatat!`);
+        closeModal('modalIuran');
+        renderBendaharaGang();
+        if (state.activeRole === 'bendahara_umum') renderBendaharaUmum();
     }
 
     function resetAndSetorKeBendaharaUmum() {
@@ -1689,7 +1842,7 @@ function responseJSON(data) {
                 category: 'Setoran Bendahara Gang (' + gang + ')',
                 note: 'Penyerahan Saldo Iuran Tunai Gang ' + gang,
                 amount: totalHandoverAmount,
-                officer: 'Bendahara ' + gang
+                officer: state.currentUser ? state.currentUser.name : ('Bendahara ' + gang)
             };
 
             state.ledger.unshift(newLedgerItem);
@@ -1732,188 +1885,151 @@ function responseJSON(data) {
         });
 
         if (count === 0) {
-            showToast('Tidak ada warga yang menunggak untuk diexport.', 'error');
+            showToast('Tidak ada tunggakan untuk diexport.', 'error');
             return;
         }
 
-        const encodedUri = encodeURI(csv);
-        const link = document.createElement("a");
+        var encodedUri = encodeURI(csv);
+        var link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Rekap_Tunggakan_${gang.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute("download", `Rekap_Tunggakan_${gang.replace(/\s+/g, '_')}_2026.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        showToast('Laporan rekap tunggakan berhasil di-download.');
-    }
-
-    function openModalCatatIuran() {
-        var select = document.getElementById('iuranFormWargaId');
-        select.innerHTML = '';
-
-        if (state.wargaList.length === 0) {
-            select.innerHTML = '<option value="">Belum ada warga</option>';
-            return;
-        }
-
-        state.wargaList.forEach(function(w) {
-            select.innerHTML += '<option value="' + w.id + '">' + w.id + ' - ' + w.nama + ' (' + w.gang + ')</option>';
-        });
-
-        onIuranWargaSelected();
-        document.getElementById('modalIuran').classList.remove('hidden');
-    }
-
-    function quickPayIuran(wargaId) {
-        openModalCatatIuran();
-        document.getElementById('iuranFormWargaId').value = wargaId;
-        onIuranWargaSelected();
-    }
-
-    function onIuranWargaSelected() {
-        var wargaId = document.getElementById('iuranFormWargaId').value;
-        var w = state.wargaList.find(item => item.id === wargaId);
-        if (!w) return;
-
-        var isHuni = w.statusHuni === 'HUNI';
-        var rate = isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
-
-        document.getElementById('iuranWargaStatusInfo').innerText = isHuni ? 'Dihuni (Full)' : 'Tidak Dihuni (Kebersihan)';
-        document.getElementById('iuranWargaTariffInfo').innerText = formatRupiah(rate);
-        document.getElementById('iuranFormNominal').value = rate;
-    }
-
-    function saveIuran(e) {
-        e.preventDefault();
-        var wargaId = document.getElementById('iuranFormWargaId').value;
-        var bulan = document.getElementById('iuranFormBulan').value;
-        var tahun = document.getElementById('iuranFormTahun').value;
-        var nominal = parseInt(document.getElementById('iuranFormNominal').value, 10);
-        var metode = document.getElementById('iuranFormMetode').value;
-
-        if (!wargaId) return;
-
-        var key = wargaId + '_' + bulan + '_' + tahun;
-        var collector = state.activeRole === 'bendahara_gang' ? 'Bendahara ' + state.activeGang : 'Bendahara Umum';
-        var isDirectTransfer = (metode === "TRANSFER");
-
-        var payload = {
-            key: key,
-            wargaId: wargaId,
-            bulan: bulan,
-            tahun: tahun,
-            nominal: nominal,
-            date: new Date().toISOString().split('T')[0],
-            method: metode,
-            collector: collector,
-            handedOver: isDirectTransfer ? true : false
-        };
-
-        state.iuranRecords[key] = {
-            wargaId: wargaId,
-            bulan: bulan,
-            tahun: tahun,
-            nominal: nominal,
-            date: payload.date,
-            method: metode,
-            collector: collector,
-            handedOver: isDirectTransfer ? true : false
-        };
-
-        // Jika Transfer Direct ke Bendahara Umum, tambahkan entri otomatis di Kas RT
-        if (isDirectTransfer) {
-            var w = state.wargaList.find(item => item.id === wargaId);
-            var wName = w ? w.nama : wargaId;
-            var autoKasObj = {
-                id: Date.now(),
-                date: payload.date,
-                type: 'PEMASUKAN',
-                category: 'Transfer Direct Iuran Warga',
-                note: `Iuran ${bulan} ${tahun} (${wargaId} - ${wName}) via Transfer Direct`,
-                amount: nominal,
-                officer: 'Bendahara Umum'
-            };
-            state.ledger.unshift(autoKasObj);
-            postToGSheet("ADD_KAS", autoKasObj);
-        }
-
-        postToGSheet("RECORD_IURAN", payload);
-
-        showToast('Iuran ' + wargaId + ' bulan ' + bulan + ' ' + tahun + ' (' + metode + ') sebesar ' + formatRupiah(nominal) + ' berhasil dicatat!');
-        closeModal('modalIuran');
-
-        if (state.activeRole === 'bendahara_gang') renderBendaharaGang();
-        if (state.activeRole === 'bendahara_umum') renderBendaharaUmum();
+        showToast('Rekap tunggakan berhasil didownload.');
     }
 
     function renderBendaharaUmum() {
-        var totalIncome = 0;
-        var totalExpense = 0;
+        var totalMasuk = 0;
+        var totalKeluar = 0;
 
-        state.ledger.forEach(function(item) {
-            if (item.type === 'PEMASUKAN') totalIncome += Number(item.amount || 0);
-            if (item.type === 'PENGELUARAN') totalExpense += Number(item.amount || 0);
+        state.ledger.forEach(item => {
+            var amt = Number(item.amount || 0);
+            if (item.type === 'PEMASUKAN') totalMasuk += amt;
+            if (item.type === 'PENGELUARAN') totalKeluar += amt;
         });
 
-        var currentBalance = totalIncome - totalExpense;
+        var mainBalance = totalMasuk - totalKeluar;
 
-        document.getElementById('generalBalance').innerText = formatRupiah(currentBalance);
-        document.getElementById('generalIncomeMonth').innerText = formatRupiah(totalIncome);
-        document.getElementById('generalExpenseMonth').innerText = formatRupiah(totalExpense);
+        document.getElementById('generalBalance').innerText = formatRupiah(mainBalance);
+        document.getElementById('generalIncomeMonth').innerText = formatRupiah(totalMasuk);
+        document.getElementById('generalExpenseMonth').innerText = formatRupiah(totalKeluar);
 
+        generateWAReportText();
         renderLedgerTable();
     }
 
+    function generateWAReportText() {
+        var month = document.getElementById('waReportMonth').value;
+        var year = document.getElementById('waReportYear').value;
+
+        var totalMasukMonth = 0;
+        var totalKeluarMonth = 0;
+        var incomeList = [];
+        var expenseList = [];
+
+        state.ledger.forEach(item => {
+            var amt = Number(item.amount || 0);
+            if (item.type === 'PEMASUKAN') {
+                totalMasukMonth += amt;
+                incomeList.push(`• ${item.category}: ${formatRupiah(amt)} (${item.note || '-'})`);
+            } else if (item.type === 'PENGELUARAN') {
+                totalKeluarMonth += amt;
+                expenseList.push(`• ${item.category}: ${formatRupiah(amt)} (${item.note || '-'})`);
+            }
+        });
+
+        var totalMasukAll = 0;
+        var totalKeluarAll = 0;
+        state.ledger.forEach(i => {
+            if (i.type === 'PEMASUKAN') totalMasukAll += Number(i.amount || 0);
+            if (i.type === 'PENGELUARAN') totalKeluarAll += Number(i.amount || 0);
+        });
+        var currentBalance = totalMasukAll - totalKeluarAll;
+
+        var reportText = `📢 *LAPORAN KEUANGAN KAS RT 04 - CLUSTER TABEBUYA*\n`;
+        reportText += `🗓️ Periode: *${month} ${year}*\n\n`;
+        
+        reportText += `💵 *REKAP KAS UTAMA*\n`;
+        reportText += `🟢 Total Pemasukan: *${formatRupiah(totalMasukMonth)}*\n`;
+        reportText += `🔴 Total Pengeluaran: *${formatRupiah(totalKeluarMonth)}*\n`;
+        reportText += `🏦 *SALDO KAS SAAT INI: ${formatRupiah(currentBalance)}*\n\n`;
+
+        if (incomeList.length > 0) {
+            reportText += `📥 *RINCIAN PEMASUKAN:*\n` + incomeList.join('\n') + `\n\n`;
+        }
+
+        if (expenseList.length > 0) {
+            reportText += `📤 *RINCIAN PENGELUARAN:*\n` + expenseList.join('\n') + `\n\n`;
+        }
+
+        reportText += `Demikian laporan keuangan disampaikan. Terima kasih atas partisipasi seluruh warga RT 04 Tabebuya. 🙏\n`;
+        reportText += `_-- Bendahara Umum RT 04 --_`;
+
+        document.getElementById('waReportPreview').value = reportText;
+    }
+
+    function copyWAReportToClipboard() {
+        var textarea = document.getElementById('waReportPreview');
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        
+        try {
+            document.execCommand('copy');
+            showToast('Rekapan Laporan WA berhasil disalin ke clipboard!');
+        } catch (err) {
+            showToast('Gagal menyalin otomatis, silakan salin manual.', 'error');
+        }
+    }
+
     function renderLedgerTable() {
-        var filter = document.getElementById('ledgerTypeFilter').value;
+        var filterType = document.getElementById('ledgerTypeFilter').value;
         var tbody = document.getElementById('ledgerTableBody');
         tbody.innerHTML = '';
 
-        var filtered = state.ledger.filter(item => filter === 'ALL' || item.type === filter);
+        var filtered = state.ledger.filter(item => filterType === 'ALL' || item.type === filterType);
 
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-xs text-slate-400">Belum ada catatan mutasi kas di Google Sheet.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-xs text-slate-400">Belum ada transaksi kas tercatat.</td></tr>';
             return;
         }
 
-        filtered.forEach(function(item) {
-            var isIncome = item.type === 'PEMASUKAN';
-            tbody.innerHTML += 
-                '<tr class="hover:bg-slate-50">' +
-                    '<td class="p-3 font-mono text-xs text-slate-500">' + (item.date || '-') + '</td>' +
-                    '<td class="p-3">' +
-                        '<span class="' + (isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700') + ' text-[10px] font-bold px-2 py-0.5 rounded-full">' +
-                            (isIncome ? 'MASUK' : 'KELUAR') +
-                        '</span>' +
-                    '</td>' +
-                    '<td class="p-3 font-semibold text-slate-800">' + (item.category || '-') + '</td>' +
-                    '<td class="p-3 text-xs text-slate-500">' + (item.note || '-') + '</td>' +
-                    '<td class="p-3 font-bold ' + (isIncome ? 'text-emerald-600' : 'text-rose-600') + '">' +
-                        (isIncome ? '+' : '-') + ' ' + formatRupiah(item.amount) +
-                    '</td>' +
-                    '<td class="p-3 text-xs font-medium text-slate-600">' + (item.officer || '-') + '</td>' +
-                '</tr>';
+        filtered.forEach(item => {
+            var isPemasukan = item.type === 'PEMASUKAN';
+            tbody.innerHTML += `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-3 font-mono text-slate-500">${item.date || '-'}</td>
+                    <td class="p-3">
+                        <span class="${isPemasukan ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} px-2.5 py-1 rounded-full text-[10px] font-bold">
+                            ${isPemasukan ? 'KAS MASUK' : 'KAS KELUAR'}
+                        </span>
+                    </td>
+                    <td class="p-3 font-semibold text-slate-800">${item.category || '-'}</td>
+                    <td class="p-3 text-slate-600">${item.note || '-'}</td>
+                    <td class="p-3 font-extrabold ${isPemasukan ? 'text-emerald-600' : 'text-rose-600'}">${formatRupiah(item.amount)}</td>
+                    <td class="p-3 text-slate-500 font-medium">${item.officer || 'Bendahara Umum'}</td>
+                </tr>
+            `;
         });
     }
 
     function openModalTransaction(type) {
         document.getElementById('transFormType').value = type;
-        document.getElementById('modalTransTitle').innerText = type === 'PEMASUKAN' ? 'Input Kas Masuk RT' : 'Input Kas Keluar RT';
-        
+        document.getElementById('modalTransTitle').innerText = type === 'PEMASUKAN' ? 'Catat Kas Masuk RT' : 'Catat Pengeluaran Kas RT';
+
+        var katSelect = document.getElementById('transFormKategori');
+        katSelect.innerHTML = '';
+
+        var categories = type === 'PEMASUKAN' 
+            ? ['Iuran Transfer Direct', 'Donasi Warga', 'Sponsor / Kegiatan', 'Penyerahan Cash Gang', 'Lain-lain']
+            : ['Gaji Satpam / Security', 'Iuran Kebersihan / Sampah', 'Perbaikan Gerbang / Fasum', 'Acara RT / Perayaan', 'Operasional Kantor / ATK', 'Lain-lain'];
+
+        categories.forEach(c => katSelect.innerHTML += `<option value="${c}">${c}</option>`);
+
         var submitBtn = document.getElementById('transSubmitBtn');
         submitBtn.className = type === 'PEMASUKAN' 
-            ? 'px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md'
-            : 'px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md';
-
-        var kategoriSelect = document.getElementById('transFormKategori');
-        kategoriSelect.innerHTML = '';
-
-        var options = type === 'PEMASUKAN' 
-            ? ['Setoran Bendahara Tabebuya Raya', 'Setoran Bendahara Tabebuya 1', 'Setoran Bendahara Tabebuya 2', 'Setoran Bendahara Tabebuya 3', 'Donasi Warga', 'Lain-lain']
-            : ['Honor Keamanan / Satpam', 'Kebersihan & Sampah', 'Perbaikan Lampu Jalan', 'Acara RT / 17an', 'Lain-lain'];
-
-        options.forEach(opt => {
-            kategoriSelect.innerHTML += '<option value="' + opt + '">' + opt + '</option>';
-        });
+            ? 'px-5 py-2 font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md'
+            : 'px-5 py-2 font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md';
 
         document.getElementById('transFormNominal').value = '';
         document.getElementById('transFormKet').value = '';
@@ -1924,68 +2040,42 @@ function responseJSON(data) {
         e.preventDefault();
         var type = document.getElementById('transFormType').value;
         var category = document.getElementById('transFormKategori').value;
-        var nominal = parseInt(document.getElementById('transFormNominal').value, 10);
-        var note = document.getElementById('transFormKet').value;
+        var amount = Number(document.getElementById('transFormNominal').value || 0);
+        var note = document.getElementById('transFormKet').value.trim();
 
-        var newTransObj = {
+        var newKasItem = {
             id: Date.now(),
             date: new Date().toISOString().split('T')[0],
             type: type,
             category: category,
             note: note,
-            amount: nominal,
-            officer: 'Bendahara Umum'
+            amount: amount,
+            officer: state.currentUser ? state.currentUser.name : 'Bendahara Umum'
         };
 
-        state.ledger.unshift(newTransObj);
-        postToGSheet("ADD_KAS", newTransObj);
+        state.ledger.unshift(newKasItem);
+        postToGSheet("ADD_KAS", newKasItem);
 
-        showToast('Transaksi ' + type.toLowerCase() + ' sebesar ' + formatRupiah(nominal) + ' berhasil disimpan!');
+        showToast(`Transaksi ${type.toLowerCase()} sebesar ${formatRupiah(amount)} berhasil disimpan!`);
         closeModal('modalTrans');
         renderBendaharaUmum();
     }
 
     function closeModal(id) {
-        var modal = document.getElementById(id);
-        if (modal) modal.classList.add('hidden');
+        var el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
     }
 
     function copyAppsScriptCode() {
         var code = document.getElementById('appsScriptCode').innerText;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(code).then(() => showToast('Kode Google Apps Script berhasil disalin!'));
-        } else {
-            showToast('Gagal menyalin otomatis. Silakan salin manual.', 'error');
-        }
+        var tempInput = document.createElement('textarea');
+        tempInput.value = code;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('Kode Google Apps Script disalin ke clipboard!');
     }
-
-        function exportToCSV() {
-            if (!state.ledger || state.ledger.length === 0) {
-                showToast('Tidak ada data mutasi kas untuk di-export.', 'error');
-                return;
-            }
-            let csvContent = "data:text/csv;charset=utf-8,ID,Tanggal,Jenis,Kategori,Keterangan,Nominal,Petugas\n";
-            state.ledger.forEach(item => {
-                let row = [
-                    item.id || '',
-                    item.date || '',
-                    item.type || '',
-                    `"${(item.category || '').replace(/"/g, '""')}"`,
-                    `"${(item.note || '').replace(/"/g, '""')}"`,
-                    item.amount || 0,
-                    `"${(item.officer || '').replace(/"/g, '""')}"`
-                ].join(",");
-                csvContent += row + "\n";
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Laporan_Kas_RT_Cluster_Tabebuya_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast('Laporan CSV Kas Utama berhasil di-download.');
-        }
-    </script>
+</script>
 </body>
 </html>
