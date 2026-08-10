@@ -12,7 +12,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     
     <script>
-        // GOOGLE APPS SCRIPT WEB APP URL
         const GSHEET_API_URL = "https://script.google.com/macros/s/AKfycbwngJ7HT7XqpJsWSdRtx-YLaSfnm6JCJ1dP0PaClLo8VI77ASPA_hoUN_Trm8EXEx6a/exec";
         
         tailwind.config = {
@@ -45,7 +44,7 @@
         .tab-active {
             border-bottom: 3px solid #0284c7;
             color: #0284c7;
-            font-weight: 600;
+            font-weight: 700;
         }
         ::-webkit-scrollbar {
             width: 6px;
@@ -72,11 +71,11 @@
                     </div>
                     <div>
                         <h1 class="font-bold text-lg leading-tight">SI-KAS RT 05</h1>
-                        <p class="text-xs text-sky-300">Cluster Tabebuya - Portal Keuangan digital</p>
+                        <p class="text-xs text-sky-300">Cluster Tabebuya - Portal Keuangan Digital</p>
                     </div>
                 </div>
 
-                <!-- User Session & Logout / Switch Role -->
+                <!-- User Session & Restricted Switcher -->
                 <div class="flex items-center space-x-3">
                     <div id="syncBadge" class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 text-[11px] text-emerald-400 font-medium">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -85,7 +84,7 @@
 
                     <div id="userInfoHeader" class="hidden flex items-center space-x-3 bg-slate-800 p-1.5 px-3 rounded-xl border border-slate-700">
                         <div class="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center font-bold text-white text-xs" id="userAvatar">
-                            A
+                            U
                         </div>
                         <div class="text-left hidden sm:block">
                             <div class="text-xs font-bold text-white leading-none" id="userNameHeader">User</div>
@@ -96,13 +95,10 @@
                         </button>
                     </div>
 
-                    <!-- Role Switcher (For Staff / Admin) -->
+                    <!-- Role Switcher Container (Restricted according to authenticated role) -->
                     <div id="roleSelectorContainer" class="hidden flex items-center space-x-2 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
                         <select id="roleSelector" onchange="switchRole(this.value)" class="bg-slate-900 text-sky-400 text-xs font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:outline-none cursor-pointer">
-                            <option value="warga">👤 Portal Warga</option>
-                            <option value="admin">🛠️ Admin RT</option>
-                            <option value="bendahara_gang">📑 Bendahara Gang</option>
-                            <option value="bendahara_umum">💰 Bendahara Umum</option>
+                            <!-- Populated dynamically based on permissions -->
                         </select>
                     </div>
                 </div>
@@ -110,48 +106,49 @@
         </div>
     </header>
 
+    <!-- Sub-header notice -->
     <div class="bg-sky-50 border-b border-sky-100 py-2 px-4 sm:px-8">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-sky-800 gap-2">
             <div class="flex items-center space-x-2">
                 <span id="roleBadge" class="bg-sky-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase">Portal Login</span>
-                <span id="roleDescription">Silakan login dengan akun username dan password Anda.</span>
+                <span id="roleDescription">Silakan login dengan Nama Pendek / Username dan Password Anda.</span>
             </div>
             
-            <!-- ADMIN ONLY GUIDES CONTAINER (HIDDEN UNTIL ADMIN LOGS IN) -->
+            <!-- ADMIN ONLY GUIDES CONTAINER -->
             <div id="adminGuideButtons" class="hidden items-center space-x-3">
                 <button onclick="openDeploymentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1.5 transition-all text-[11px]">
-                    <i class="fa-solid fa-rocket"></i> Panduan Deployment & Hosting
+                    <i class="fa-solid fa-rocket"></i> Panduan Deployment
                 </button>
                 <span class="text-slate-300">|</span>
                 <button onclick="openAppsScriptModal()" class="text-sky-700 hover:text-sky-900 font-medium underline flex items-center gap-1">
-                    <i class="fa-solid fa-file-code"></i> Setup Google Sheets Script
+                    <i class="fa-solid fa-file-code"></i> Setup Apps Script
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN CONTAINER -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
 
-        <!-- NOTIFICATION CONTAINER -->
+        <!-- Toast Notifications -->
         <div id="toastContainer" class="fixed top-20 right-5 z-50 flex flex-col gap-2"></div>
 
+        <!-- VIEW 1: LOGIN PAGE -->
         <section id="view-login" class="max-w-md mx-auto py-8">
             <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-200 space-y-6">
                 <div class="text-center space-y-2">
                     <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
                         <i class="fa-solid fa-user-lock"></i>
                     </div>
-                    <h2 class="text-2xl font-bold text-slate-800">Login Sistem KAS RT</h2>
-                    <p class="text-xs text-slate-500">Masukkan Username dan Password terdaftar di Google Sheet untuk mengakses portal keuangan.</p>
+                    <h2 class="text-2xl font-bold text-slate-800">Login KAS RT Tabebuya</h2>
+                    <p class="text-xs text-slate-500">Warga dapat login menggunakan <b>Nama Pendek</b> (Contoh: Budi, Agus, Siti) atau Username.</p>
                 </div>
 
                 <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Username / ID Rumah</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nama Pendek / Username</label>
                         <div class="relative">
                             <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                            <input type="text" id="loginUsername" placeholder="Username (Admin / Pegawai / ID Warga)" required class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none text-xs font-semibold text-slate-800">
+                            <input type="text" id="loginUsername" placeholder="Contoh: Budi / admin / bendahara1" required class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none text-xs font-semibold text-slate-800">
                         </div>
                     </div>
 
@@ -164,31 +161,33 @@
                     </div>
 
                     <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-sky-200 transition-all text-xs flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Sistem
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
                     </button>
                 </form>
 
                 <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-600 space-y-1">
                     <div class="font-bold text-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-info text-sky-600"></i> Informasi Otentikasi:
+                        <i class="fa-solid fa-circle-info text-sky-600"></i> Ketentuan Akses & Login:
                     </div>
                     <ul class="list-disc pl-4 space-y-0.5 text-[10.5px]">
-                        <li><b>Admin RT:</b> Username <code class="bg-slate-200 px-1 rounded text-purple-700">admin</code> | Password <code class="bg-slate-200 px-1 rounded text-purple-700">123456</code></li>
-                        <li><b>Warga / Pegawai:</b> Login menggunakan data terdaftar dari Google Sheet (Password MD5 otomatis diverifikasi).</li>
+                        <li><b>Login Warga:</b> Masukkan <u>Nama Pendek</u> (seperti tercantum di database warga) & password default <code class="bg-slate-200 px-1 rounded text-sky-800">123456</code>. Warga hanya dapat melihat portal warga.</li>
+                        <li><b>Bendahara:</b> Hanya dapat mengakses portal Bendahara masing-masing.</li>
+                        <li><b>Admin RT:</b> Username <code class="bg-slate-200 px-1 rounded text-purple-700">admin</code> | Password <code class="bg-slate-200 px-1 rounded text-purple-700">123456</code>.</li>
                     </ul>
                 </div>
             </div>
         </section>
 
+        <!-- VIEW 2: WARGA PORTAL (STRICTLY WARGA ONLY ACCESSIBLE) -->
         <section id="view-warga" class="hidden space-y-6">
             <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h2 class="text-xl font-bold text-slate-800">Cek Status Tagihan & Iuran Warga</h2>
-                        <p class="text-xs text-slate-500">Masukkan ID Rumah / Blok Gang Anda untuk melihat histori iuran tahunan.</p>
+                        <h2 class="text-xl font-bold text-slate-800">Cek Status Tagihan & Riwayat Iuran Warga</h2>
+                        <p class="text-xs text-slate-500">Pencarian berdasarkan ID Rumah / Nama Rumah / Blok Gang Tabebuya.</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <input type="text" id="wargaSearchId" placeholder="Contoh ID: G1-01" class="px-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold uppercase focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <input type="text" id="wargaSearchId" placeholder="ID (TR-01) atau Nama..." class="px-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold uppercase focus:ring-2 focus:ring-sky-500 focus:outline-none">
                         <button onclick="checkWargaStatus()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md">
                             <i class="fa-solid fa-magnifying-glass mr-1"></i> Cari
                         </button>
@@ -210,7 +209,7 @@
 
                     <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex gap-6 text-center">
                         <div>
-                            <div class="text-[10px] uppercase text-sky-300 font-medium">Total Lunas</div>
+                            <div class="text-[10px] uppercase text-sky-300 font-medium">Total Terbayar</div>
                             <div id="residencePaidTotal" class="text-lg font-bold text-emerald-400">Rp 0</div>
                         </div>
                         <div class="border-r border-white/20"></div>
@@ -225,7 +224,7 @@
                 <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-calendar-days text-sky-600 mr-2"></i> Status Iuran Bulanan Tahun 2026</h4>
-                        <span id="residenceTariff" class="text-xs font-semibold text-slate-500">Nominal: Rp 0 / Bulan</span>
+                        <span id="residenceTariff" class="text-xs font-semibold text-slate-500">Nominal: Rp 30.000 / Bulan</span>
                     </div>
 
                     <div id="monthlyGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -235,6 +234,7 @@
             </div>
         </section>
 
+        <!-- VIEW 3: ADMIN PORTAL -->
         <section id="view-admin" class="hidden space-y-6">
             <!-- Stats Row -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -249,7 +249,7 @@
                 </div>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-slate-500 font-medium">Rumah Dihuni (Full Rate)</p>
+                        <p class="text-xs text-slate-500 font-medium">Rumah Dihuni (Rp 30.000)</p>
                         <h3 id="adminTotalHuni" class="text-2xl font-extrabold text-emerald-600 mt-1">0 Rumah</h3>
                     </div>
                     <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl font-bold">
@@ -258,7 +258,7 @@
                 </div>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-slate-500 font-medium">Rumah Tidak Dihuni (Kebersihan)</p>
+                        <p class="text-xs text-slate-500 font-medium">Rumah Tidak Dihuni (Rp 15.000)</p>
                         <h3 id="adminTotalTidakHuni" class="text-2xl font-extrabold text-amber-600 mt-1">0 Rumah</h3>
                     </div>
                     <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl font-bold">
@@ -272,7 +272,7 @@
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h3 class="font-bold text-slate-800 text-lg">Kelola Data Warga RT 05</h3>
-                        <p class="text-xs text-slate-500">Tambah, ubah, atau atur status rumah warga.</p>
+                        <p class="text-xs text-slate-500">Atur status rumah huni/tidak huni dan nama penghuni.</p>
                     </div>
                     <button onclick="openModalAddWarga()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md flex items-center gap-2">
                         <i class="fa-solid fa-plus"></i> Tambah Warga Baru
@@ -282,11 +282,10 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-slate-100">
                     <input type="text" id="adminFilterSearch" oninput="renderAdminTable()" placeholder="Cari nama / ID rumah..." class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:outline-none">
                     <select id="adminFilterGang" onchange="renderAdminTable()" class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none">
-                        <option value="ALL">Semua Gang</option>
-                        <option value="TB R">Tabebuya Raya</option>
-                        <option value="TB 1">Tabebuya 1</option>
-                        <option value="TB 2">Tabebuya 2</option>
-                        <option value="TB 3">Tabebuya 3</option>
+                        <option value="ALL">Semua Gang Tabebuya</option>
+                        <option value="Tabebuya Raya">Tabebuya Raya</option>
+                        <option value="Tabebuya 1">Tabebuya 1</option>
+                        <option value="Tabebuya 2">Tabebuya 2</option>
                     </select>
                     <select id="adminFilterStatus" onchange="renderAdminTable()" class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none">
                         <option value="ALL">Semua Status Huni</option>
@@ -302,7 +301,7 @@
                             <tr class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
                                 <th class="p-3">ID Rumah</th>
                                 <th class="p-3">Nama Penghuni</th>
-                                <th class="p-3">Gang / Jalan</th>
+                                <th class="p-3">Blok / Gang</th>
                                 <th class="p-3">No. HP</th>
                                 <th class="p-3">Status Huni</th>
                                 <th class="p-3">Tarif Iuran</th>
@@ -317,74 +316,164 @@
             </div>
         </section>
 
+        <!-- VIEW 4: BENDAHARA GANG PORTAL (ENHANCED WITH REKAP & CASH RESET) -->
         <section id="view-bendahara_gang" class="hidden space-y-6">
-            <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h3 class="font-bold text-slate-800 text-lg">Penerimaan Iuran Tunai Per Gang</h3>
-                        <p class="text-xs text-slate-500">Pencatatan iuran bulanan dari pintu ke pintu oleh Bendahara Gang.</p>
+                        <h3 class="font-bold text-slate-800 text-lg">Penerimaan & Laporan Iuran Per Gang</h3>
+                        <p class="text-xs text-slate-500">Pencatatan iuran, laporan warga belum bayar, dan penyerahan saldo ke Bendahara Umum.</p>
                     </div>
 
                     <div class="flex items-center gap-3">
                         <label class="text-xs font-bold text-slate-600">Pilih Gang:</label>
                         <select id="gangTreasurerSelect" onchange="switchGangTreasurer(this.value)" class="px-4 py-2 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs font-bold focus:outline-none">
-                            <option value="TB R">Tabebuya Raya</option>
-                            <option value="TB 1">Tabebuya 1</option>
-                            <option value="TB 2">Tabebuya 2</option>
-                            <option value="TB 3">Tabebuya 3</option>
+                            <option value="Tabebuya Raya">Tabebuya Raya</option>
+                            <option value="Tabebuya 1">Tabebuya 1</option>
+                            <option value="Tabebuya 2">Tabebuya 2</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200">
-                        <p class="text-[11px] font-bold text-amber-800 uppercase">Total Terkumpul Bulan Ini (<span id="activeGangNameLabel">Gang 1</span>)</p>
-                        <h4 id="gangSummaryCollected" class="text-xl font-extrabold text-amber-900 mt-1">Rp 0</h4>
+                <!-- Summary Cards Row (Including Unsubmitted Cash & Reset Button) -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 flex flex-col justify-between">
+                        <div>
+                            <p class="text-[11px] font-bold text-amber-800 uppercase">Total Terkumpul (<span class="activeGangNameLabel">Tabebuya Raya</span>)</p>
+                            <h4 id="gangSummaryCollected" class="text-xl font-extrabold text-amber-900 mt-1">Rp 0</h4>
+                        </div>
+                        <span class="text-[10px] text-amber-700 mt-2"><i class="fa-solid fa-wallet mr-1"></i>Akumulasi Iuran Received</span>
                     </div>
-                    <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
-                        <p class="text-[11px] font-bold text-emerald-800 uppercase">Rumah Lunas</p>
-                        <h4 id="gangSummaryPaidCount" class="text-xl font-extrabold text-emerald-900 mt-1">0 Rumah</h4>
+
+                    <div class="bg-gradient-to-br from-amber-500 to-amber-700 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between">
+                        <div>
+                            <p class="text-[11px] font-bold text-amber-100 uppercase">Saldo Belum Diserahkan</p>
+                            <h4 id="gangSummaryPendingHandover" class="text-xl font-extrabold mt-1">Rp 0</h4>
+                        </div>
+                        <button onclick="resetAndSetorKeBendaharaUmum()" class="mt-3 bg-slate-900 hover:bg-slate-800 text-amber-300 text-[11px] font-bold py-1.5 px-3 rounded-xl shadow transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-hand-holding-dollar"></i> Setor & Reset Saldo
+                        </button>
                     </div>
-                    <div class="bg-rose-50 p-4 rounded-2xl border border-rose-200">
-                        <p class="text-[11px] font-bold text-rose-800 uppercase">Rumah Belum Bayar</p>
-                        <h4 id="gangSummaryUnpaidCount" class="text-xl font-extrabold text-rose-900 mt-1">0 Rumah</h4>
+
+                    <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 flex flex-col justify-between">
+                        <div>
+                            <p class="text-[11px] font-bold text-emerald-800 uppercase">Rumah Lunas (Bulan Ini)</p>
+                            <h4 id="gangSummaryPaidCount" class="text-xl font-extrabold text-emerald-900 mt-1">0 Rumah</h4>
+                        </div>
+                        <span class="text-[10px] text-emerald-700 mt-2"><i class="fa-solid fa-check-circle mr-1"></i>Status Lunas</span>
+                    </div>
+
+                    <div class="bg-rose-50 p-4 rounded-2xl border border-rose-200 flex flex-col justify-between">
+                        <div>
+                            <p class="text-[11px] font-bold text-rose-800 uppercase">Belum Membayar</p>
+                            <h4 id="gangSummaryUnpaidCount" class="text-xl font-extrabold text-rose-900 mt-1">0 Rumah</h4>
+                        </div>
+                        <span class="text-[10px] text-rose-700 mt-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Perlu Ditagih</span>
                     </div>
                 </div>
 
-                <!-- Warga List in Selected Gang -->
-                <div class="overflow-x-auto pt-2">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
-                                <th class="p-3">ID</th>
-                                <th class="p-3">Nama</th>
-                                <th class="p-3">Status Huni</th>
-                                <th class="p-3">Iuran/Bln</th>
-                                <th class="p-3">Status Agustus 2026</th>
-                                <th class="p-3 text-center">Aksi Terima</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gangWargaTableBody" class="divide-y divide-slate-100">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
+                <!-- Sub-Navigation Tabs for Bendahara Gang -->
+                <div class="flex border-b border-slate-200 text-xs font-bold gap-6">
+                    <button id="tabBtn-terima" onclick="switchGangTab('terima')" class="pb-3 tab-active transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-cash-register"></i> Terima Iuran Tunai
+                    </button>
+                    <button id="tabBtn-rekap" onclick="switchGangTab('rekap')" class="pb-3 text-slate-500 hover:text-slate-800 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Rekap Belum Membayar
+                    </button>
+                    <button id="tabBtn-history" onclick="switchGangTab('history')" class="pb-3 text-slate-500 hover:text-slate-800 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i> History Pembayaran
+                    </button>
                 </div>
+
+                <!-- TAB CONTENT 1: TERIMA IURAN TUNAI -->
+                <div id="gangTab-terima" class="space-y-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">Nama Warga</th>
+                                    <th class="p-3">Status Huni</th>
+                                    <th class="p-3">Iuran / Bln</th>
+                                    <th class="p-3">Status Agustus 2026</th>
+                                    <th class="p-3 text-center">Aksi Penerimaan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gangWargaTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 2: REKAP WARGA BELUM MEMBAYAR (TUNGGAKAN) -->
+                <div id="gangTab-rekap" class="hidden space-y-4">
+                    <div class="flex justify-between items-center bg-rose-50 p-3.5 rounded-2xl border border-rose-200 text-xs">
+                        <div class="text-rose-900 font-semibold">
+                            <i class="fa-solid fa-circle-exclamation text-rose-600 mr-1.5"></i>
+                            Daftar warga di <strong class="activeGangNameLabel">Tabebuya Raya</strong> yang memiliki tunggakan iuran.
+                        </div>
+                        <button onclick="exportUnpaidReport()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl font-bold shadow-sm">
+                            <i class="fa-solid fa-download mr-1"></i> Download Rekap
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                                    <th class="p-3">ID Rumah</th>
+                                    <th class="p-3">Nama Warga</th>
+                                    <th class="p-3">No. HP / WA</th>
+                                    <th class="p-3">Tarif / Bln</th>
+                                    <th class="p-3">Total Tunggakan (2026)</th>
+                                    <th class="p-3 text-center">Aksi Pengingat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gangUnpaidTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 3: HISTORY PEMBAYARAN IURAN -->
+                <div id="gangTab-history" class="hidden space-y-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                                    <th class="p-3">Tanggal Terbayar</th>
+                                    <th class="p-3">ID & Nama Warga</th>
+                                    <th class="p-3">Bulan / Tahun</th>
+                                    <th class="p-3">Nominal Setor</th>
+                                    <th class="p-3">Metode</th>
+                                    <th class="p-3">Status Penyerahan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gangHistoryTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </section>
 
+        <!-- VIEW 5: BENDAHARA UMUM PORTAL -->
         <section id="view-bendahara_umum" class="hidden space-y-6">
             <!-- Balance Overview Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-gradient-to-br from-emerald-600 to-teal-800 text-white p-6 rounded-3xl shadow-lg">
                     <p class="text-xs uppercase font-medium text-emerald-100">Saldo Utama Kas RT</p>
                     <h2 id="generalBalance" class="text-3xl font-extrabold mt-2">Rp 0</h2>
-                    <p class="text-[10px] text-emerald-200 mt-2"><i class="fa-solid fa-shield-halved mr-1"></i> Terverifikasi & Sinkron</p>
+                    <p class="text-[10px] text-emerald-200 mt-2"><i class="fa-solid fa-shield-halved mr-1"></i> Terverifikasi & Tersinkron</p>
                 </div>
                 <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200">
                     <p class="text-xs text-slate-500 font-medium">Total Pemasukan Kas</p>
                     <h3 id="generalIncomeMonth" class="text-2xl font-bold text-emerald-600 mt-2">Rp 0</h3>
-                    <p class="text-[10px] text-slate-400 mt-1">Iuran Gang + Transfer Direct</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Setoran Bendahara Gang + Donasi Direct</p>
                 </div>
                 <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200">
                     <p class="text-xs text-slate-500 font-medium">Total Pengeluaran Kas</p>
@@ -397,8 +486,8 @@
             <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h3 class="font-bold text-slate-800 text-lg">Buku Kas & Mutasi Keuangan</h3>
-                        <p class="text-xs text-slate-500">Catatan aliran kas masuk dan pengeluaran operasional RT 05.</p>
+                        <h3 class="font-bold text-slate-800 text-lg">Buku Kas Utama RT 05</h3>
+                        <p class="text-xs text-slate-500">Catatan aliran kas masuk dan pengeluaran operasional RT.</p>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -455,30 +544,29 @@
             <form onsubmit="saveWarga(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="wargaFormOriginalId">
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Gang / Blok Jalan</label>
+                    <label class="block font-bold text-slate-700 mb-1">Blok / Gang Tabebuya</label>
                     <select id="wargaFormGang" onchange="updatePrimaryIdPreview()" class="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold">
-                        <option value="TB R">Tabebuya Raya</option>
-                        <option value="TB 1">Tabebuya 1</option>
-                        <option value="TB 2">Tabebuya 2</option>
-                        <option value="TB 3">Tabebuya 3</option>
+                        <option value="Tabebuya Raya">Tabebuya Raya</option>
+                        <option value="Tabebuya 1">Tabebuya 1</option>
+                        <option value="Tabebuya 2">Tabebuya 2</option>
                     </select>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nomor Rumah (2 Digit)</label>
                     <input type="text" id="wargaFormNoRumah" placeholder="01" oninput="updatePrimaryIdPreview()" required class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
-                    <span class="text-[10px] text-slate-400">Preview ID: <strong id="primaryIdPreview" class="text-purple-600 font-mono">G1-01</strong></span>
+                    <span class="text-[10px] text-slate-400">Preview ID: <strong id="primaryIdPreview" class="text-purple-600 font-mono">TR-01</strong></span>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nama Kepala Keluarga / Penghuni</label>
-                    <input type="text" id="wargaFormNama" placeholder="Nama Lengkap" required class="w-full p-2.5 bg-slate-50 border rounded-xl">
+                    <label class="block font-bold text-slate-700 mb-1">Nama Penghuni (Lengkap)</label>
+                    <input type="text" id="wargaFormNama" placeholder="Contoh: Budi Santoso" required class="w-full p-2.5 bg-slate-50 border rounded-xl">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nomor HP / WhatsApp</label>
                     <input type="text" id="wargaFormHp" placeholder="0812xxxx" class="w-full p-2.5 bg-slate-50 border rounded-xl">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Password Warga (Plain/MD5)</label>
-                    <input type="text" id="wargaFormPassword" placeholder="Opsional (Default: 123456)" class="w-full p-2.5 bg-slate-50 border rounded-xl font-mono">
+                    <label class="block font-bold text-slate-700 mb-1">Password Login Warga</label>
+                    <input type="text" id="wargaFormPassword" placeholder="Default: 123456" class="w-full p-2.5 bg-slate-50 border rounded-xl font-mono">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Status Hunian</label>
@@ -593,14 +681,14 @@
     <!-- MODAL 4: CONFIRMATION MODAL -->
     <div id="modalConfirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
-            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
-            <h3 class="text-base font-bold text-slate-800">Konfirmasi Hapus</h3>
-            <p id="confirmMessageText" class="text-xs text-slate-500">Apakah Anda yakin ingin menghapus data ini?</p>
+            <h3 id="confirmTitle" class="text-base font-bold text-slate-800">Konfirmasi Action</h3>
+            <p id="confirmMessageText" class="text-xs text-slate-500">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
             <div class="flex justify-center gap-2 pt-2">
                 <button onclick="closeModal('modalConfirm')" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 rounded-xl">Batal</button>
-                <button id="confirmExecuteBtn" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 rounded-xl shadow-md">Hapus</button>
+                <button id="confirmExecuteBtn" class="px-4 py-2 text-xs font-bold text-white bg-amber-600 rounded-xl shadow-md">Lanjutkan</button>
             </div>
         </div>
     </div>
@@ -610,10 +698,10 @@
         <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 relative max-h-[85vh] overflow-y-auto">
             <button onclick="closeModal('modalAppsScript')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
             <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-code text-sky-600"></i> Setup Google Apps Script (Multi-Role & MD5 Password)
+                <i class="fa-solid fa-code text-sky-600"></i> Setup Google Apps Script (Multi-Role & Auto-Sheet)
             </h3>
             <p class="text-xs text-slate-600 leading-relaxed">
-                Salin kode Google Apps Script di bawah ini ke Spreadsheet RT Anda. Script ini mendukung sheet <b>Warga</b>, <b>Pegawai</b>, <b>Iuran</b>, dan <b>Kas</b>.
+                Salin kode Google Apps Script terbaru di bawah ini. Kode ini mengelola sheet <b>Tabebuya Raya</b>, <b>Tabebuya 1</b>, dan <b>Tabebuya 2</b>, tarif Rp 30.000 / Rp 15.000, serta penyerahan saldo kas gang.
             </p>
 
             <div class="bg-slate-900 text-slate-100 p-3 rounded-xl relative">
@@ -623,45 +711,113 @@
                 <pre id="appsScriptCode" class="text-[10px] font-mono overflow-x-auto max-h-56 p-2">
 function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var dataWarga = getSheetDataAsObjects(ss.getSheetByName("Warga"));
-  var dataPegawai = getSheetDataAsObjects(ss.getSheetByName("Pegawai"));
-  var dataIuran = getSheetDataAsObjects(ss.getSheetByName("Iuran"));
-  var dataKas = getSheetDataAsObjects(ss.getSheetByName("Kas"));
   
-  return ContentService.createTextOutput(JSON.stringify({
+  var sheetWarga = getOrCreateSheet(ss, "Warga", ["id", "gang", "noRumah", "nama", "hp", "statusHuni", "username", "password"]);
+  var sheetPegawai = getOrCreateSheet(ss, "Pegawai", ["id", "username", "password", "nama", "role", "linkedGang"]);
+  var sheetIuran = getOrCreateSheet(ss, "Iuran", ["key", "wargaId", "bulan", "tahun", "nominal", "date", "handedOver"]);
+  var sheetKas = getOrCreateSheet(ss, "Kas", ["id", "date", "type", "category", "note", "amount", "officer"]);
+
+  initDefaultPegawai(sheetPegawai);
+
+  return responseJSON({
     status: "success",
-    warga: dataWarga,
-    pegawai: dataPegawai,
-    iuran: dataIuran,
-    kas: dataKas
-  })).setMimeType(ContentService.MimeType.JSON);
+    warga: getSheetDataAsObjects(sheetWarga),
+    pegawai: getSheetDataAsObjects(sheetPegawai),
+    iuran: getSheetDataAsObjects(sheetIuran),
+    kas: getSheetDataAsObjects(sheetKas)
+  });
 }
 
 function doPost(e) {
   try {
     var contents = JSON.parse(e.postData.contents);
     var action = contents.action;
+    var data = contents.data;
     var ss = SpreadsheetApp.getActiveSpreadsheet();
 
     if (action === "ADD_WARGA") {
-      var w = contents.data;
-      var sheetWarga = ss.getSheetByName("Warga");
-      sheetWarga.appendRow([w.id, w.gang, w.noRumah, w.nama, w.hp, w.statusHuni, w.username || w.id, w.password || ""]);
-      return responseJSON({ status: "success", message: "Warga disimpan" });
+      var sheet = getOrCreateSheet(ss, "Warga", ["id", "gang", "noRumah", "nama", "hp", "statusHuni", "username", "password"]);
+      sheet.appendRow([data.id, data.gang, data.noRumah, data.nama, data.hp, data.statusHuni, data.username || data.nama, data.password || "123456"]);
+      return responseJSON({ status: "success", message: "Warga ditambahkan" });
     }
+
+    if (action === "UPDATE_WARGA") {
+      var sheet = ss.getSheetByName("Warga");
+      if (sheet) {
+        var rows = sheet.getDataRange().getValues();
+        for (var i = 1; i < rows.length; i++) {
+          if (String(rows[i][0]) === String(data.id)) {
+            sheet.getRange(i + 1, 1, 1, 8).setValues([[
+              data.id, data.gang, data.noRumah, data.nama, data.hp, data.statusHuni, data.username || data.nama, data.password || rows[i][7] || "123456"
+            ]]);
+            return responseJSON({ status: "success", message: "Warga diperbarui" });
+          }
+        }
+      }
+      return responseJSON({ status: "error", message: "Warga tidak ditemukan" });
+    }
+
+    if (action === "DELETE_WARGA") {
+      var sheet = ss.getSheetByName("Warga");
+      if (sheet) {
+        var rows = sheet.getDataRange().getValues();
+        for (var i = 1; i < rows.length; i++) {
+          if (String(rows[i][0]) === String(data.id)) {
+            sheet.deleteRow(i + 1);
+            return responseJSON({ status: "success", message: "Warga dihapus" });
+          }
+        }
+      }
+      return responseJSON({ status: "error", message: "Warga tidak ditemukan" });
+    }
+
     if (action === "RECORD_IURAN") {
-      var i = contents.data;
-      ss.getSheetByName("Iuran").appendRow([i.key, i.wargaId, i.bulan, i.tahun, i.nominal, i.date]);
-      return responseJSON({ status: "success", message: "Iuran disimpan" });
+      var sheet = getOrCreateSheet(ss, "Iuran", ["key", "wargaId", "bulan", "tahun", "nominal", "date", "handedOver"]);
+      sheet.appendRow([data.key, data.wargaId, data.bulan, data.tahun, data.nominal, data.date, data.handedOver || false]);
+      return responseJSON({ status: "success", message: "Iuran dicatat" });
     }
+
+    if (action === "HANDOVER_GANG") {
+      var sheet = ss.getSheetByName("Iuran");
+      if (sheet) {
+        var rows = sheet.getDataRange().getValues();
+        for (var i = 1; i < rows.length; i++) {
+          if (data.keys && data.keys.indexOf(String(rows[i][0])) !== -1) {
+            sheet.getRange(i + 1, 7).setValue(true);
+          }
+        }
+      }
+      return responseJSON({ status: "success", message: "Saldo gang berhasil diserahkan" });
+    }
+
     if (action === "ADD_KAS") {
-      var k = contents.data;
-      ss.getSheetByName("Kas").appendRow([k.id, k.date, k.type, k.category, k.note, k.amount, k.officer]);
+      var sheet = getOrCreateSheet(ss, "Kas", ["id", "date", "type", "category", "note", "amount", "officer"]);
+      sheet.appendRow([data.id || Date.now(), data.date, data.type, data.category, data.note, data.amount, data.officer]);
       return responseJSON({ status: "success", message: "Kas disimpan" });
     }
-    return responseJSON({ status: "error", message: "Aksi tidak dikenal" });
+
+    return responseJSON({ status: "error", message: "Aksi tidak dikenali" });
   } catch (err) {
     return responseJSON({ status: "error", message: err.toString() });
+  }
+}
+
+function getOrCreateSheet(ss, name, headers) {
+  var sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#e0f2fe");
+  }
+  return sheet;
+}
+
+function initDefaultPegawai(sheet) {
+  if (sheet.getLastRow() <= 1) {
+    sheet.appendRow(["PEG-01", "bendahara_raya", "123456", "Budi (Bendahara Raya)", "bendahara_gang", "Tabebuya Raya"]);
+    sheet.appendRow(["PEG-02", "bendahara1", "123456", "Siti (Bendahara Tabebuya 1)", "bendahara_gang", "Tabebuya 1"]);
+    sheet.appendRow(["PEG-03", "bendahara2", "123456", "Agus (Bendahara Tabebuya 2)", "bendahara_gang", "Tabebuya 2"]);
+    sheet.appendRow(["PEG-04", "bendahara_umum", "123456", "Pak RT / Bendahara Umum", "bendahara_umum", ""]);
   }
 }
 
@@ -684,79 +840,55 @@ function responseJSON(data) {
 }</pre>
             </div>
 
-            <div class="text-xs text-slate-600 space-y-1">
-                <p><strong>URL Endpoint Aktif:</strong></p>
-                <input type="text" readonly value="https://script.google.com/macros/s/AKfycbxVcblzARa4B8sXcp6bgyk2M0KoxA5euqVAzhF9F5o55vWXYXPMbQjPAHiCXXoK85yx/exec" class="w-full bg-slate-100 border p-2 rounded-xl text-[10px] font-mono text-slate-700">
-            </div>
-
             <div class="pt-2 border-t border-slate-100 flex justify-end">
                 <button onclick="closeModal('modalAppsScript')" class="px-5 py-2 text-xs font-bold text-white bg-slate-800 rounded-xl">Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 6: DEPLOYMENT GUIDE MODAL (ADMIN ONLY) -->
+    <!-- MODAL 6: DEPLOYMENT GUIDE MODAL -->
     <div id="modalDeployment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modalDeployment')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-lg"></i></button>
-            
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl font-bold">
                     <i class="fa-solid fa-rocket"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800">Panduan Complete Deployment & Hosting Aplikasi Kas RT</h3>
-                    <p class="text-xs text-slate-500">Langkah publikasi aplikasi ke internet tanpa biaya server (100% Gratis).</p>
+                    <h3 class="text-lg font-bold text-slate-800">Panduan Hosting & Deployment</h3>
+                    <p class="text-xs text-slate-500">Publikasikan aplikasi ke GitHub Pages atau Netlify gratis.</p>
                 </div>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <!-- Option 1: GitHub Pages -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                    <div class="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                        <i class="fa-brands fa-github text-lg"></i> Metode 1: GitHub Pages
-                    </div>
-                    <ol class="list-decimal pl-4 space-y-1 text-slate-600">
-                        <li>Buat Repository baru di <b class="text-slate-800">GitHub.com</b>.</li>
-                        <li>Upload file ini dan beri nama <code class="bg-slate-200 px-1 py-0.5 rounded text-sky-700">index.html</code>.</li>
-                        <li>Buka menu <b>Settings</b> &rarr; <b>Pages</b>.</li>
-                        <li>Pada bagian <i>Branch</i>, pilih <b>main</b> dan simpan (Save).</li>
-                        <li>Aplikasi langsung dapat diakses secara publik via URL github.io!</li>
-                    </ol>
+                    <div class="font-bold text-slate-800 text-sm"><i class="fa-brands fa-github text-lg mr-1"></i> GitHub Pages</div>
+                    <p class="text-slate-600">Upload file sebagai <code class="bg-slate-200 px-1 py-0.5 rounded text-sky-700">index.html</code> ke Repository GitHub Anda, lalu aktifkan GitHub Pages di menu Settings.</p>
                 </div>
-
-                <!-- Option 2: Netlify / Vercel -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                    <div class="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                        <i class="fa-solid fa-bolt text-amber-500 text-lg"></i> Metode 2: Netlify / Vercel (Drag & Drop)
-                    </div>
-                    <ol class="list-decimal pl-4 space-y-1 text-slate-600">
-                        <li>Buka <b class="text-slate-800">app.netlify.com/drop</b> atau <b class="text-slate-800">vercel.com</b>.</li>
-                        <li>Tarik (Drag & Drop) folder berisi file <code class="bg-slate-200 px-1 py-0.5 rounded text-sky-700">index.html</code> ini.</li>
-                        <li>Tunggu proses publish dalam 5 detik.</li>
-                        <li>Domain gratis dengan HTTPS otomatis didapatkan.</li>
-                    </ol>
+                    <div class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-bolt text-amber-500 text-lg mr-1"></i> Netlify / Vercel</div>
+                    <p class="text-slate-600">Drag & Drop file html ini langsung ke <b class="text-slate-800">app.netlify.com/drop</b> untuk langsung dipublikasikan online.</p>
                 </div>
             </div>
-
             <div class="pt-2 border-t border-slate-100 flex justify-end">
-                <button onclick="closeModal('modalDeployment')" class="px-5 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl shadow-md">Tutup Panduan</button>
+                <button onclick="closeModal('modalDeployment')" class="px-5 py-2 text-xs font-bold text-white bg-slate-800 rounded-xl">Tutup</button>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIG & CONSTANTS
+        // System Constants & Configs
         const DUES_RATE_HUNI = 30000;
         const DUES_RATE_TIDAK_HUNI = 15000;
         const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const GANG_NAMES = ["Tabebuya Raya", "Tabebuya 1", "Tabebuya 2"];
 
-        // APPLICATION INITIAL STATE (NO DUMMY DATA)
+        // Application State
         let state = {
             currentUser: null,
             isLoggedIn: false,
             activeRole: 'login',
-            activeGang: 'Gang 1',
+            activeGang: 'Tabebuya Raya',
+            activeGangTab: 'terima',
             pendingDeleteId: null,
             wargaList: [],
             pegawaiList: [],
@@ -768,12 +900,19 @@ function responseJSON(data) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number || 0);
         }
 
+        function getGangCode(gangName) {
+            if (gangName === 'Tabebuya Raya') return 'TR';
+            if (gangName === 'Tabebuya 1') return 'T1';
+            if (gangName === 'Tabebuya 2') return 'T2';
+            return 'TB';
+        }
+
         window.onload = function() {
             showLoginView();
             fetchDataFromGSheet();
         };
 
-        // FETCH REALTIME DATA FROM GSHEET
+        // REALTIME DATA SYNC FROM GSHEET
         function fetchDataFromGSheet() {
             var syncText = document.getElementById('syncText');
             if (syncText) syncText.innerText = "Mengambil data GS...";
@@ -786,16 +925,19 @@ function responseJSON(data) {
                         if (data.pegawai && Array.isArray(data.pegawai)) state.pegawaiList = data.pegawai;
                         if (data.kas && Array.isArray(data.kas)) state.ledger = data.kas;
                         
-                        // Clear & Parse Iuran
                         state.iuranRecords = {};
                         if (data.iuran && Array.isArray(data.iuran)) {
                             data.iuran.forEach(item => {
                                 if (item.key) {
                                     state.iuranRecords[item.key] = {
+                                        wargaId: item.wargaId,
+                                        bulan: item.bulan,
+                                        tahun: item.tahun,
                                         nominal: Number(item.nominal || 0),
                                         date: item.date || "",
                                         method: "TUNAI",
-                                        collector: "Sistem GS"
+                                        collector: "Bendahara Gang",
+                                        handedOver: item.handedOver === true || item.handedOver === "true"
                                     };
                                 }
                             });
@@ -803,7 +945,6 @@ function responseJSON(data) {
                         
                         if (syncText) syncText.innerText = "GSheet Terhubung";
                         
-                        // Re-render current active view tables if logged in
                         if (state.isLoggedIn) {
                             if (state.activeRole === 'admin') renderAdminTable();
                             if (state.activeRole === 'bendahara_gang') renderBendaharaGang();
@@ -815,14 +956,12 @@ function responseJSON(data) {
                 })
                 .catch(err => {
                     console.warn("GSheet connection error:", err);
-                    if (syncText) syncText.innerText = "Offline / Gagal Sinkron";
+                    if (syncText) syncText.innerText = "Offline / Local Mode";
                 });
         }
 
-        // POST DATA TO GSHEET
         function postToGSheet(action, payload) {
             if (!GSHEET_API_URL) return;
-
             fetch(GSHEET_API_URL, {
                 method: "POST",
                 mode: "no-cors",
@@ -833,66 +972,74 @@ function responseJSON(data) {
 
         function handleLogin(e) {
             e.preventDefault();
-            var username = document.getElementById('loginUsername').value.trim().toLowerCase();
+            var inputQuery = document.getElementById('loginUsername').value.trim();
             var password = document.getElementById('loginPassword').value.trim();
 
-            if (!username || !password) {
-                showToast('Masukkan username dan password.', 'error');
+            if (!inputQuery || !password) {
+                showToast('Masukkan nama/username dan password.', 'error');
                 return;
             }
 
             var passwordMD5 = CryptoJS.MD5(password).toString().toLowerCase();
+            var queryLower = inputQuery.toLowerCase();
 
-            // 1. DEFAULT OVERRIDE ADMIN LOGIN
-            if (username === 'admin' && (password === '123456' || passwordMD5 === 'e10adc3949ba59abbe56e057f20f883e')) {
-                var adminUser = { username: 'admin', name: 'Admin RT Tabebuya', role: 'admin', linkedId: '' };
-                completeLogin(adminUser);
+            // 1. ADMIN OVERRIDE LOGIN
+            if (queryLower === 'admin' && (password === '123456' || passwordMD5 === 'e10adc3949ba59abbe56e057f20f883e')) {
+                completeLogin({ username: 'admin', name: 'Admin RT Tabebuya', role: 'admin', linkedId: '' });
                 return;
             }
 
-            // 2. CHECK PEGAWAI / STAFF SHEET FROM GSHEET
+            // 2. CHECK PEGAWAI / STAFF SHEET
             var foundPegawai = state.pegawaiList.find(p => 
-                (p.username && String(p.username).toLowerCase() === username) ||
-                (p.id && String(p.id).toLowerCase() === username)
+                (p.username && String(p.username).toLowerCase() === queryLower) ||
+                (p.nama && String(p.nama).toLowerCase().includes(queryLower)) ||
+                (p.id && String(p.id).toLowerCase() === queryLower)
             );
 
             if (foundPegawai) {
                 var storedPass = String(foundPegawai.password || '').trim().toLowerCase();
                 if (storedPass === password.toLowerCase() || storedPass === passwordMD5 || password === '123456') {
-                    var pegawaiUser = {
-                        username: foundPegawai.username || username,
-                        name: foundPegawai.nama || 'Pegawai RT',
+                    completeLogin({
+                        username: foundPegawai.username || queryLower,
+                        name: foundPegawai.nama || 'Bendahara RT',
                         role: foundPegawai.role || 'bendahara_gang',
-                        linkedGang: foundPegawai.linkedGang || 'Gang 1'
-                    };
-                    completeLogin(pegawaiUser);
+                        linkedGang: foundPegawai.linkedGang || 'Tabebuya Raya'
+                    });
                     return;
                 }
             }
 
-            // 3. CHECK WARGA SHEET FROM GSHEET WITH MD5 PASSWORD
-            var foundWarga = state.wargaList.find(w => 
-                (w.id && String(w.id).toLowerCase() === username) ||
-                (w.username && String(w.username).toLowerCase() === username) ||
-                (w.noRumah && String(w.noRumah).toLowerCase() === username)
-            );
+            // 3. CHECK WARGA BY SHORT NAME (NAMA PENDEK) OR ID OR USERNAME
+            var foundWarga = state.wargaList.find(w => {
+                var wId = String(w.id || '').toLowerCase();
+                var wName = String(w.nama || '').toLowerCase();
+                var wUsername = String(w.username || '').toLowerCase();
+                
+                // Get Short Name (First Word of Full Name)
+                var shortName = wName.split(' ')[0];
+
+                return (
+                    wId === queryLower ||
+                    wUsername === queryLower ||
+                    shortName === queryLower ||
+                    wName.includes(queryLower)
+                );
+            });
 
             if (foundWarga) {
                 var storedWargaPass = String(foundWarga.password || '123456').trim().toLowerCase();
-                // Check if password matches direct text OR MD5 hash
                 if (storedWargaPass === password.toLowerCase() || storedWargaPass === passwordMD5 || password === '123456') {
-                    var wargaUser = {
-                        username: foundWarga.id || username,
+                    completeLogin({
+                        username: foundWarga.id || queryLower,
                         name: foundWarga.nama || 'Warga Tabebuya',
                         role: 'warga',
                         linkedId: foundWarga.id
-                    };
-                    completeLogin(wargaUser);
+                    });
                     return;
                 }
             }
 
-            showToast('Username atau password tidak cocok dengan data Google Sheet.', 'error');
+            showToast('Nama/Username atau password tidak cocok.', 'error');
         }
 
         function completeLogin(user) {
@@ -902,6 +1049,10 @@ function responseJSON(data) {
             showToast('Selamat datang, ' + user.name + '!');
             
             if (user.linkedGang) state.activeGang = user.linkedGang;
+            
+            // Build Restricted Dropdown according to authenticated user
+            updateRoleSelectorOptions(user.role);
+
             if (user.linkedId) {
                 setTimeout(function() {
                     var searchEl = document.getElementById('wargaSearchId');
@@ -911,6 +1062,26 @@ function responseJSON(data) {
             }
 
             switchRole(user.role);
+        }
+
+        function updateRoleSelectorOptions(userRole) {
+            var selector = document.getElementById('roleSelector');
+            selector.innerHTML = '';
+
+            if (userRole === 'warga') {
+                selector.innerHTML = '<option value="warga">👤 Portal Warga</option>';
+            } else if (userRole === 'bendahara_gang') {
+                selector.innerHTML = '<option value="bendahara_gang">📑 Bendahara Gang</option>';
+            } else if (userRole === 'bendahara_umum') {
+                selector.innerHTML = '<option value="bendahara_umum">💰 Bendahara Umum</option>';
+            } else if (userRole === 'admin') {
+                selector.innerHTML = `
+                    <option value="admin">🛠️ Admin RT</option>
+                    <option value="bendahara_gang">📑 Bendahara Gang</option>
+                    <option value="bendahara_umum">💰 Bendahara Umum</option>
+                    <option value="warga">👤 Portal Warga</option>
+                `;
+            }
         }
 
         function logout() {
@@ -930,18 +1101,16 @@ function responseJSON(data) {
             document.getElementById('view-login').classList.remove('hidden');
             document.getElementById('userInfoHeader').classList.add('hidden');
             document.getElementById('roleSelectorContainer').classList.add('hidden');
-            document.getElementById('adminGuideButtons').classList.add('hidden'); // HIDE GUIDES
+            document.getElementById('adminGuideButtons').classList.add('hidden');
 
             var badge = document.getElementById('roleBadge');
             badge.className = 'bg-sky-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
             badge.innerText = 'Portal Login';
-            document.getElementById('roleDescription').innerText = 'Silakan login dengan akun username dan password Anda.';
+            document.getElementById('roleDescription').innerText = 'Silakan login dengan Nama Pendek / Username dan Password Anda.';
         }
 
         function checkAuthAndRedirect() {
-            if (!state.isLoggedIn) {
-                showLoginView();
-            }
+            if (!state.isLoggedIn) showLoginView();
         }
 
         function openDeploymentModal() {
@@ -962,13 +1131,19 @@ function responseJSON(data) {
                 return;
             }
 
+            // STRICT PERMISSION CHECK: Warga & Bendahara restricted strictly to their roles unless Admin
+            if (state.currentUser && state.currentUser.role !== 'admin' && state.currentUser.role !== role) {
+                showToast('Akses ditolak. Anda hanya dapat mengakses menu ' + state.currentUser.role, 'error');
+                role = state.currentUser.role;
+            }
+
             state.activeRole = role;
             
             var roles = ['login', 'warga', 'admin', 'bendahara_gang', 'bendahara_umum'];
-            for (var i = 0; i < roles.length; i++) {
-                var el = document.getElementById('view-' + roles[i]);
+            roles.forEach(function(r) {
+                var el = document.getElementById('view-' + r);
                 if (el) el.classList.add('hidden');
-            }
+            });
 
             var activeEl = document.getElementById('view-' + role);
             if (activeEl) activeEl.classList.remove('hidden');
@@ -983,7 +1158,6 @@ function responseJSON(data) {
             var desc = document.getElementById('roleDescription');
             var adminGuides = document.getElementById('adminGuideButtons');
 
-            // HIDE ADMIN GUIDES BY DEFAULT UNLESS ROLE IS ADMIN
             if (state.currentUser && state.currentUser.role === 'admin') {
                 adminGuides.classList.remove('hidden');
                 adminGuides.classList.add('flex');
@@ -1000,12 +1174,12 @@ function responseJSON(data) {
             } else if (role === 'admin') {
                 badge.className = 'bg-purple-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
                 badge.innerText = 'Admin RT';
-                desc.innerText = 'Kelola database warga, penambahan rumah baru, dan status huni (Huni / Tidak Huni).';
+                desc.innerText = 'Kelola database warga, penambahan rumah baru, dan status huni.';
                 renderAdminTable();
             } else if (role === 'bendahara_gang') {
                 badge.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
                 badge.innerText = 'Bendahara Gang';
-                desc.innerText = 'Koleksi iuran tunai di gang Anda dan rekap laporan untuk disetorkan ke Bendahara Umum.';
+                desc.innerText = 'Penerimaan iuran tunai, laporan tunggakan warga, & penyerahan kas ke Bendahara Umum.';
                 
                 var gangSel = document.getElementById('gangTreasurerSelect');
                 if (gangSel && state.currentUser && state.currentUser.linkedGang) {
@@ -1016,7 +1190,7 @@ function responseJSON(data) {
             } else if (role === 'bendahara_umum') {
                 badge.className = 'bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
                 badge.innerText = 'Bendahara Umum';
-                desc.innerText = 'Kelola Kas Utama RT, pengeluaran operasional komplek, dan mutasi iuran dari seluruh gang.';
+                desc.innerText = 'Kelola Saldo Kas Utama RT, pengeluaran operasional komplek, & mutasi iuran.';
                 renderBendaharaUmum();
             }
 
@@ -1039,17 +1213,21 @@ function responseJSON(data) {
         function checkWargaStatus() {
             var searchInput = document.getElementById('wargaSearchId');
             if (!searchInput) return;
-            var searchVal = searchInput.value.trim().toUpperCase();
+            var searchVal = searchInput.value.trim().toLowerCase();
             if (!searchVal) return;
 
             var warga = state.wargaList.find(function(w) {
-                return (w.id && String(w.id).toUpperCase() === searchVal) || (w.noRumah && String(w.noRumah) === searchVal);
+                var wId = String(w.id || '').toLowerCase();
+                var wName = String(w.nama || '').toLowerCase();
+                var wNo = String(w.noRumah || '').toLowerCase();
+                var shortName = wName.split(' ')[0];
+                return wId === searchVal || wNo === searchVal || shortName === searchVal || wName.includes(searchVal);
             });
 
             var resultSection = document.getElementById('wargaResultSection');
             if (!warga) {
                 if (resultSection) resultSection.classList.add('hidden');
-                showToast('Data Warga dengan ID "' + searchVal + '" tidak ditemukan.', 'error');
+                showToast('Data Warga "' + searchVal + '" tidak ditemukan.', 'error');
                 return;
             }
 
@@ -1057,7 +1235,7 @@ function responseJSON(data) {
 
             document.getElementById('residenceIdBadge').innerText = warga.id || searchVal;
             document.getElementById('residenceOwnerName').innerText = warga.nama || 'Tanpa Nama';
-            document.getElementById('residenceAddress').innerHTML = '<i class="fa-solid fa-location-dot text-rose-400 mr-1.5"></i> ' + (warga.gang || 'Gang') + ' No. ' + (warga.noRumah || '-');
+            document.getElementById('residenceAddress').innerHTML = '<i class="fa-solid fa-location-dot text-rose-400 mr-1.5"></i> ' + (warga.gang || 'Tabebuya Raya') + ' No. ' + (warga.noRumah || '-');
 
             var isHuni = warga.statusHuni === 'HUNI';
             var statusBadge = document.getElementById('residenceStatusBadge');
@@ -1103,7 +1281,7 @@ function responseJSON(data) {
                         '</div>' +
                         '<div class="text-sm font-extrabold">' + formatRupiah(monthlyTariff) + '</div>' +
                         '<div class="text-[10px] text-slate-400">' +
-                            (isPaid ? '<i class="fa-solid fa-calendar text-emerald-500 mr-1"></i>Tgl: ' + state.iuranRecords[key].date : 'Tagihan RT') +
+                            (isPaid ? '<i class="fa-solid fa-calendar text-emerald-500 mr-1"></i>' + state.iuranRecords[key].date : 'Tagihan RT') +
                         '</div>' +
                     '</div>';
             });
@@ -1136,7 +1314,7 @@ function responseJSON(data) {
             tbody.innerHTML = '';
 
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-6 text-xs text-slate-400">Belum ada data warga di Google Sheet. Klik "Tambah Warga Baru".</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-6 text-xs text-slate-400">Belum ada data warga terdaftar. Klik "Tambah Warga Baru".</td></tr>';
                 return;
             }
 
@@ -1169,7 +1347,7 @@ function responseJSON(data) {
             document.getElementById('wargaFormNoRumah').value = '';
             document.getElementById('wargaFormHp').value = '';
             document.getElementById('wargaFormPassword').value = '';
-            document.getElementById('wargaFormGang').value = 'Gang 1';
+            document.getElementById('wargaFormGang').value = 'Tabebuya Raya';
             document.getElementById('wargaFormStatus').value = 'HUNI';
             updatePrimaryIdPreview();
             document.getElementById('modalWarga').classList.remove('hidden');
@@ -1178,9 +1356,9 @@ function responseJSON(data) {
         function updatePrimaryIdPreview() {
             var gang = document.getElementById('wargaFormGang').value;
             var no = document.getElementById('wargaFormNoRumah').value.trim() || '00';
-            var gangCode = gang === 'Gang 1' ? 'G1' : (gang === 'Gang 2' ? 'G2' : 'G3');
+            var code = getGangCode(gang);
             var paddedNo = ('0' + no).slice(-2);
-            document.getElementById('primaryIdPreview').innerText = gangCode + '-' + paddedNo;
+            document.getElementById('primaryIdPreview').innerText = code + '-' + paddedNo;
         }
 
         function saveWarga(e) {
@@ -1193,10 +1371,12 @@ function responseJSON(data) {
             var plainPass = document.getElementById('wargaFormPassword').value.trim() || "123456";
             var statusHuni = document.getElementById('wargaFormStatus').value;
 
-            var gangCode = gang === 'Gang 1' ? 'G1' : (gang === 'Gang 2' ? 'G2' : 'G3');
+            var code = getGangCode(gang);
             var paddedNo = ('0' + noRumah).slice(-2);
-            var primaryId = gangCode + '-' + paddedNo;
+            var primaryId = code + '-' + paddedNo;
             var passMD5 = CryptoJS.MD5(plainPass).toString().toLowerCase();
+
+            var shortName = nama.split(' ')[0];
 
             var newWargaObj = { 
                 id: primaryId, 
@@ -1205,20 +1385,20 @@ function responseJSON(data) {
                 nama: nama, 
                 hp: hp, 
                 statusHuni: statusHuni, 
-                username: primaryId, 
-                password: passMD5,
-                rate: statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI 
+                username: shortName.toLowerCase(), 
+                password: passMD5
             };
 
             if (originalId) {
                 var idx = state.wargaList.findIndex(w => w.id === originalId);
                 if (idx !== -1) {
                     state.wargaList[idx] = newWargaObj;
+                    postToGSheet("UPDATE_WARGA", newWargaObj);
                     showToast('Data warga ' + nama + ' berhasil diperbarui.');
                 }
             } else {
                 if (state.wargaList.some(w => w.id === primaryId)) {
-                    showToast('Rumah dengan ID ' + primaryId + ' sudah ada!', 'error');
+                    showToast('Rumah ID ' + primaryId + ' sudah ada!', 'error');
                     return;
                 }
                 state.wargaList.push(newWargaObj);
@@ -1239,7 +1419,7 @@ function responseJSON(data) {
             document.getElementById('wargaFormNama').value = w.nama;
             document.getElementById('wargaFormNoRumah').value = w.noRumah;
             document.getElementById('wargaFormHp').value = w.hp || '';
-            document.getElementById('wargaFormGang').value = w.gang || 'Gang 1';
+            document.getElementById('wargaFormGang').value = w.gang || 'Tabebuya Raya';
             document.getElementById('wargaFormStatus').value = w.statusHuni || 'HUNI';
             document.getElementById('wargaFormPassword').value = '';
             updatePrimaryIdPreview();
@@ -1248,7 +1428,8 @@ function responseJSON(data) {
 
         function confirmDeleteWarga(id) {
             state.pendingDeleteId = id;
-            document.getElementById('confirmMessageText').innerText = 'Apakah Anda yakin ingin menghapus data warga dengan ID ' + id + '?';
+            document.getElementById('confirmTitle').innerText = 'Konfirmasi Hapus Warga';
+            document.getElementById('confirmMessageText').innerText = 'Apakah Anda yakin ingin menghapus data warga ID ' + id + '?';
             document.getElementById('confirmExecuteBtn').onclick = executeDeleteWarga;
             document.getElementById('modalConfirm').classList.remove('hidden');
         }
@@ -1257,6 +1438,7 @@ function responseJSON(data) {
             var id = state.pendingDeleteId;
             if (id) {
                 state.wargaList = state.wargaList.filter(w => w.id !== id);
+                postToGSheet("DELETE_WARGA", { id: id });
                 showToast('Data ' + id + ' telah dihapus.');
                 renderAdminTable();
             }
@@ -1268,38 +1450,77 @@ function responseJSON(data) {
             renderBendaharaGang();
         }
 
+        function switchGangTab(tabName) {
+            state.activeGangTab = tabName;
+            ['terima', 'rekap', 'history'].forEach(t => {
+                var btn = document.getElementById('tabBtn-' + t);
+                var content = document.getElementById('gangTab-' + t);
+                if (btn && content) {
+                    if (t === tabName) {
+                        btn.className = 'pb-3 tab-active transition-all flex items-center gap-2';
+                        content.classList.remove('hidden');
+                    } else {
+                        btn.className = 'pb-3 text-slate-500 hover:text-slate-800 transition-all flex items-center gap-2';
+                        content.classList.add('hidden');
+                    }
+                }
+            });
+            renderBendaharaGang();
+        }
+
         function renderBendaharaGang() {
             var gang = state.activeGang;
-            document.getElementById('activeGangNameLabel').innerText = gang;
+            document.querySelectorAll('.activeGangNameLabel').forEach(el => el.innerText = gang);
 
             var gangWarga = state.wargaList.filter(w => w.gang === gang);
             var currentMonth = "Agustus";
             var currentYear = 2026;
 
-            var collected = 0;
+            var totalCollected = 0;
+            var pendingHandover = 0;
             var paidCount = 0;
             var unpaidCount = 0;
 
-            var tbody = document.getElementById('gangWargaTableBody');
-            tbody.innerHTML = '';
+            // Compute totals & pending handover cash for this gang
+            Object.keys(state.iuranRecords).forEach(key => {
+                var record = state.iuranRecords[key];
+                var w = state.wargaList.find(item => item.id === record.wargaId);
+                if (w && w.gang === gang) {
+                    totalCollected += record.nominal;
+                    if (!record.handedOver) {
+                        pendingHandover += record.nominal;
+                    }
+                }
+            });
 
-            if (gangWarga.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-xs text-slate-400">Belum ada warga terdaftar di ' + gang + '.</td></tr>';
-            }
-
-            gangWarga.forEach(function(w) {
+            gangWarga.forEach(w => {
                 var key = w.id + '_' + currentMonth + '_' + currentYear;
-                var isPaid = !!state.iuranRecords[key];
-                var monthlyRate = w.statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
-
-                if (isPaid) {
-                    collected += state.iuranRecords[key].nominal;
+                if (state.iuranRecords[key]) {
                     paidCount++;
                 } else {
                     unpaidCount++;
                 }
+            });
 
-                tbody.innerHTML += 
+            document.getElementById('gangSummaryCollected').innerText = formatRupiah(totalCollected);
+            document.getElementById('gangSummaryPendingHandover').innerText = formatRupiah(pendingHandover);
+            document.getElementById('gangSummaryPaidCount').innerText = paidCount + ' / ' + gangWarga.length + ' Rumah';
+            document.getElementById('gangSummaryUnpaidCount').innerText = unpaidCount + ' Rumah';
+
+            // TAB 1: TERIMA IURAN TUNAI TABLE
+            var tbodyTerima = document.getElementById('gangWargaTableBody');
+            tbodyTerima.innerHTML = '';
+
+            if (gangWarga.length === 0) {
+                tbodyTerima.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-xs text-slate-400">Belum ada warga terdaftar di ' + gang + '.</td></tr>';
+            }
+
+            gangWarga.forEach(w => {
+                var key = w.id + '_' + currentMonth + '_' + currentYear;
+                var isPaid = !!state.iuranRecords[key];
+                var monthlyRate = w.statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
+
+                tbodyTerima.innerHTML += 
                     '<tr class="hover:bg-slate-50">' +
                         '<td class="p-3 font-mono font-bold text-sky-700">' + (w.id || '-') + '</td>' +
                         '<td class="p-3 font-semibold text-slate-800">' + (w.nama || '-') + '</td>' +
@@ -1317,14 +1538,182 @@ function responseJSON(data) {
                         '<td class="p-3 text-center">' +
                             (!isPaid 
                                 ? '<button onclick="quickPayIuran(\'' + w.id + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1 rounded-lg font-bold shadow-sm">+ Terima Iuran</button>' 
-                                : '<span class="text-xs text-slate-400 italic">Terbayar (' + state.iuranRecords[key].method + ')</span>') +
+                                : '<span class="text-xs text-slate-400 italic"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>Terbayar</span>') +
                         '</td>' +
                     '</tr>';
             });
 
-            document.getElementById('gangSummaryCollected').innerText = formatRupiah(collected);
-            document.getElementById('gangSummaryPaidCount').innerText = paidCount + ' / ' + gangWarga.length + ' Rumah';
-            document.getElementById('gangSummaryUnpaidCount').innerText = unpaidCount + ' Rumah';
+            // TAB 2: REKAP WARGA BELUM MEMBAYAR (TUNGGAKAN)
+            var tbodyUnpaid = document.getElementById('gangUnpaidTableBody');
+            tbodyUnpaid.innerHTML = '';
+            var unpaidListCount = 0;
+
+            gangWarga.forEach(w => {
+                var isHuni = w.statusHuni === 'HUNI';
+                var monthlyTariff = isHuni ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
+                var totalArrears = 0;
+                var currentMonthIndex = 7; // August
+
+                MONTHS.forEach((m, idx) => {
+                    if (idx <= currentMonthIndex) {
+                        var k = w.id + '_' + m + '_' + currentYear;
+                        if (!state.iuranRecords[k]) totalArrears += monthlyTariff;
+                    }
+                });
+
+                if (totalArrears > 0) {
+                    unpaidListCount++;
+                    var waText = encodeURIComponent(`Halo Bpk/Ibu ${w.nama} (${w.id}), mengingatkan tagihan iuran KAS RT 05 Gang ${gang} sebesar ${formatRupiah(totalArrears)}. Terima kasih.`);
+                    var waUrl = w.hp ? `https://wa.me/${w.hp.replace(/[^0-9]/g, '')}?text=${waText}` : '#';
+
+                    tbodyUnpaid.innerHTML += `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-mono font-bold text-sky-700">${w.id}</td>
+                            <td class="p-3 font-semibold text-slate-800">${w.nama}</td>
+                            <td class="p-3 font-mono text-slate-600">${w.hp || '-'}</td>
+                            <td class="p-3 font-semibold text-slate-700">${formatRupiah(monthlyTariff)}</td>
+                            <td class="p-3 font-extrabold text-rose-600">${formatRupiah(totalArrears)}</td>
+                            <td class="p-3 text-center">
+                                ${w.hp ? `<a href="${waUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1 shadow-sm"><i class="fa-brands fa-whatsapp"></i> Ingatkan WA</a>` : '<span class="text-slate-400 italic">Tidak ada WA</span>'}
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (unpaidListCount === 0) {
+                tbodyUnpaid.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-xs text-emerald-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Luar biasa! Semua warga di ' + gang + ' sudah lunas.</td></tr>';
+            }
+
+            // TAB 3: HISTORY PEMBAYARAN IURAN
+            var tbodyHistory = document.getElementById('gangHistoryTableBody');
+            tbodyHistory.innerHTML = '';
+            var historyRecords = [];
+
+            Object.keys(state.iuranRecords).forEach(k => {
+                var rec = state.iuranRecords[k];
+                var w = state.wargaList.find(item => item.id === rec.wargaId);
+                if (w && w.gang === gang) {
+                    historyRecords.push({ ...rec, wargaNama: w.nama });
+                }
+            });
+
+            historyRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (historyRecords.length === 0) {
+                tbodyHistory.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-xs text-slate-400">Belum ada riwayat pembayaran di ' + gang + '.</td></tr>';
+            } else {
+                historyRecords.forEach(r => {
+                    tbodyHistory.innerHTML += `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-mono text-slate-500">${r.date || '-'}</td>
+                            <td class="p-3 font-semibold text-slate-800"><strong class="text-sky-700 font-mono mr-1">${r.wargaId}</strong> ${r.wargaNama}</td>
+                            <td class="p-3 font-semibold">${r.bulan} ${r.tahun}</td>
+                            <td class="p-3 font-extrabold text-emerald-600">${formatRupiah(r.nominal)}</td>
+                            <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-bold">${r.method}</span></td>
+                            <td class="p-3">
+                                ${r.handedOver 
+                                    ? '<span class="bg-sky-100 text-sky-800 font-bold px-2 py-0.5 rounded text-[10px]"><i class="fa-solid fa-check mr-1"></i>Diserahkan</span>' 
+                                    : '<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]"><i class="fa-solid fa-clock mr-1"></i>Di Belum Diserahkan</span>'}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function resetAndSetorKeBendaharaUmum() {
+            var gang = state.activeGang;
+            var keysToHandover = [];
+            var totalHandoverAmount = 0;
+
+            Object.keys(state.iuranRecords).forEach(key => {
+                var record = state.iuranRecords[key];
+                var w = state.wargaList.find(item => item.id === record.wargaId);
+                if (w && w.gang === gang && !record.handedOver) {
+                    keysToHandover.push(key);
+                    totalHandoverAmount += record.nominal;
+                }
+            });
+
+            if (totalHandoverAmount === 0) {
+                showToast('Saldo belum diserahkan untuk ' + gang + ' saat ini adalah Rp 0.', 'error');
+                return;
+            }
+
+            document.getElementById('confirmTitle').innerText = 'Setor Saldo Kas Gang';
+            document.getElementById('confirmMessageText').innerText = `Apakah Anda yakin ingin menyerahkan saldo kas ${gang} sebesar ${formatRupiah(totalHandoverAmount)} ke Bendahara Umum & mereset saldo pegangan?`;
+            
+            document.getElementById('confirmExecuteBtn').onclick = function() {
+                // Update local state
+                keysToHandover.forEach(k => {
+                    if (state.iuranRecords[k]) state.iuranRecords[k].handedOver = true;
+                });
+
+                // Add Kas Entry into General Ledger
+                var newLedgerItem = {
+                    id: Date.now(),
+                    date: new Date().toISOString().split('T')[0],
+                    type: 'PEMASUKAN',
+                    category: 'Setoran Bendahara Gang (' + gang + ')',
+                    note: 'Penyerahan Saldo Iuran Tunai Gang ' + gang,
+                    amount: totalHandoverAmount,
+                    officer: 'Bendahara ' + gang
+                };
+
+                state.ledger.unshift(newLedgerItem);
+
+                // Sync GS
+                postToGSheet("HANDOVER_GANG", { keys: keysToHandover });
+                postToGSheet("ADD_KAS", newLedgerItem);
+
+                showToast(`Saldo ${formatRupiah(totalHandoverAmount)} berhasil diserahkan ke Bendahara Umum!`);
+                closeModal('modalConfirm');
+                renderBendaharaGang();
+                if (state.activeRole === 'bendahara_umum') renderBendaharaUmum();
+            };
+
+            document.getElementById('modalConfirm').classList.remove('hidden');
+        }
+
+        function exportUnpaidReport() {
+            var gang = state.activeGang;
+            var gangWarga = state.wargaList.filter(w => w.gang === gang);
+            var currentMonthIndex = 7; // August
+            var currentYear = 2026;
+
+            let csv = "data:text/csv;charset=utf-8,ID Rumah,Nama Penghuni,Gang,No HP,Status Huni,Total Tunggakan (Rp)\n";
+            var count = 0;
+
+            gangWarga.forEach(w => {
+                var monthlyTariff = w.statusHuni === 'HUNI' ? DUES_RATE_HUNI : DUES_RATE_TIDAK_HUNI;
+                var totalArrears = 0;
+                MONTHS.forEach((m, idx) => {
+                    if (idx <= currentMonthIndex) {
+                        var k = w.id + '_' + m + '_' + currentYear;
+                        if (!state.iuranRecords[k]) totalArrears += monthlyTariff;
+                    }
+                });
+
+                if (totalArrears > 0) {
+                    count++;
+                    csv += `"${w.id}","${w.nama}","${w.gang}","${w.hp || ''}","${w.statusHuni}",${totalArrears}\n`;
+                }
+            });
+
+            if (count === 0) {
+                showToast('Tidak ada warga yang menunggak untuk diexport.', 'error');
+                return;
+            }
+
+            const encodedUri = encodeURI(csv);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Rekap_Tunggakan_${gang.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Laporan rekap tunggakan berhasil di-download.');
         }
 
         function openModalCatatIuran() {
@@ -1382,29 +1771,22 @@ function responseJSON(data) {
                 bulan: bulan,
                 tahun: tahun,
                 nominal: nominal,
-                date: new Date().toISOString().split('T')[0]
+                date: new Date().toISOString().split('T')[0],
+                handedOver: false
             };
 
             state.iuranRecords[key] = {
+                wargaId: wargaId,
+                bulan: bulan,
+                tahun: tahun,
                 nominal: nominal,
                 date: payload.date,
                 method: metode,
-                collector: collector
+                collector: collector,
+                handedOver: false
             };
 
-            // Post to GSheet
             postToGSheet("RECORD_IURAN", payload);
-
-            // Record into General Ledger
-            state.ledger.unshift({
-                id: Date.now(),
-                date: payload.date,
-                type: 'PEMASUKAN',
-                category: 'Iuran Warga (' + wargaId + ')',
-                note: 'Iuran Bulan ' + bulan + ' ' + tahun + ' - ' + wargaId + ' via ' + metode,
-                amount: nominal,
-                officer: collector
-            });
 
             showToast('Iuran ' + wargaId + ' bulan ' + bulan + ' ' + tahun + ' sebesar ' + formatRupiah(nominal) + ' berhasil dicatat!');
             closeModal('modalIuran');
@@ -1476,8 +1858,8 @@ function responseJSON(data) {
             kategoriSelect.innerHTML = '';
 
             var options = type === 'PEMASUKAN' 
-                ? ['Setoran Bendahara Gang 1', 'Setoran Bendahara Gang 2', 'Setoran Bendahara Gang 3', 'Donasi Warga', 'Lain-lain']
-                : ['Honor Keamanan', 'Kebersihan & Sampah', 'Perbaikan Lampu Jalan', 'Acara RT / 17an', 'Lain-lain'];
+                ? ['Setoran Bendahara Tabebuya Raya', 'Setoran Bendahara Tabebuya 1', 'Setoran Bendahara Tabebuya 2', 'Donasi Warga', 'Lain-lain']
+                : ['Honor Keamanan / Satpam', 'Kebersihan & Sampah', 'Perbaikan Lampu Jalan', 'Acara RT / 17an', 'Lain-lain'];
 
             options.forEach(opt => {
                 kategoriSelect.innerHTML += '<option value="' + opt + '">' + opt + '</option>';
@@ -1524,7 +1906,7 @@ function responseJSON(data) {
                 navigator.clipboard.writeText(code).then(() => showToast('Kode Google Apps Script berhasil disalin!'))
                     .catch(() => showToast('Gagal menyalin kode, silakan salin manual.', 'error'));
             } else {
-                showToast('Salin manual kode yang ada di kotak.', 'error');
+                showToast('Silakan salin manual kode yang ada di kotak.', 'error');
             }
         }
 
@@ -1553,7 +1935,7 @@ function responseJSON(data) {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast('Laporan CSV berhasil di-download.');
+            showToast('Laporan CSV Kas Utama berhasil di-download.');
         }
     </script>
 </body>
